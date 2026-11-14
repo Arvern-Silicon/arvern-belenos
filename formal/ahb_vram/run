@@ -1,0 +1,3 @@
+#!/bin/sh
+# Runs this proof's tasks (formal/run_all ahb_vram); -mutate runs its mutations.
+exec "$(dirname "$0")/../run_all" "$@" ahb_vram

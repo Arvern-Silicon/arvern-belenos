@@ -1,0 +1,6 @@
+{reg: [
+  {bits: 2, name: 'REFR', attr: 'RW'},
+  {bits: 2},
+  {bits: 2, name: 'LATCHED', attr: 'RO', rotate: -90},
+  {bits: 26}
+], config: {bits: 32, lanes: 1, hspace: 900, vspace: 130}}

@@ -1,0 +1,455 @@
+{
+  "description": "blns_vram_arb: grants, priority, starvation bounds, read return, rd_pend_o",
+  "top": "vram_arb_fv",
+  "clocking": "single",
+  "files": [
+    "ips:arv_ipdff.v",
+    "rtl:blns_vram_arb.v",
+    "vram_arb_fv.sv"
+  ],
+  "tasks": {
+    "lat1_reg0": {
+      "params": {
+        "RD_LAT": 1,
+        "RD_REG_EN": 0
+      },
+      "depth": 14,
+      "induction": true,
+      "cover": true,
+      "cover_depth": 16,
+      "probes": {
+        "p_age_wait": "u_dut.G_AGE.age_wait"
+      }
+    },
+    "lat1_reg1": {
+      "params": {
+        "RD_LAT": 1,
+        "RD_REG_EN": 1
+      },
+      "depth": 14,
+      "induction": true,
+      "cover": true,
+      "cover_depth": 16,
+      "probes": {
+        "p_age_wait": "u_dut.G_AGE.age_wait"
+      }
+    },
+    "lat2_reg0": {
+      "params": {
+        "RD_LAT": 2,
+        "RD_REG_EN": 0
+      },
+      "depth": 14,
+      "induction": true,
+      "cover": true,
+      "cover_depth": 16,
+      "probes": {
+        "p_age_wait": "u_dut.G_AGE.age_wait"
+      }
+    },
+    "lat2_reg1": {
+      "params": {
+        "RD_LAT": 2,
+        "RD_REG_EN": 1
+      },
+      "depth": 14,
+      "induction": true,
+      "cover": true,
+      "cover_depth": 16,
+      "probes": {
+        "p_age_wait": "u_dut.G_AGE.age_wait"
+      }
+    },
+    "lat3_reg0": {
+      "params": {
+        "RD_LAT": 3,
+        "RD_REG_EN": 0
+      },
+      "depth": 14,
+      "induction": true,
+      "cover": true,
+      "cover_depth": 16,
+      "probes": {
+        "p_age_wait": "u_dut.G_AGE.age_wait"
+      }
+    },
+    "lat3_reg1": {
+      "params": {
+        "RD_LAT": 3,
+        "RD_REG_EN": 1
+      },
+      "depth": 14,
+      "induction": true,
+      "cover": true,
+      "cover_depth": 16,
+      "probes": {
+        "p_age_wait": "u_dut.G_AGE.age_wait"
+      }
+    },
+    "nogpu_lat2": {
+      "params": {
+        "RD_LAT": 2,
+        "RD_REG_EN": 0,
+        "GPU_EN": 0
+      },
+      "depth": 10,
+      "induction": true,
+      "cover": true,
+      "note": "GPU_EN = 0: slot 1 not built"
+    },
+    "srst_lat3_reg1": {
+      "params": {
+        "RD_LAT": 3,
+        "RD_REG_EN": 1,
+        "ASYNC_RST_EN": 0
+      },
+      "depth": 14,
+      "induction": true,
+      "cover": false,
+      "probes": {
+        "p_age_wait": "u_dut.G_AGE.age_wait"
+      },
+      "note": "synchronous reset"
+    },
+    "nocur_lat2": {
+      "params": {
+        "RD_LAT": 2,
+        "RD_REG_EN": 0,
+        "BK_TAG": 0
+      },
+      "depth": 14,
+      "induction": true,
+      "cover": true,
+      "cover_depth": 16,
+      "probes": {
+        "p_age_wait": "u_dut.G_AGE.age_wait"
+      },
+      "note": "BK_TAG = 0: the refresh slot untagged (CURSOR_EN = 0)"
+    }
+  },
+  "mutations": [
+    {
+      "name": "idle_ignores_busy",
+      "task": "lat1_reg0",
+      "expect": [
+        "a_onehot",
+        "a_idle_only"
+      ],
+      "file": "rtl:blns_vram_arb.v",
+      "from": "& ~busy   &",
+      "to": "&"
+    },
+    {
+      "name": "host_without_req",
+      "task": "lat1_reg0",
+      "expect": [
+        "a_gnt_req"
+      ],
+      "file": "rtl:blns_vram_arb.v",
+      "from": "HOST_MASK[gi] & req_i[gi] & host_ok",
+      "to": "HOST_MASK[gi] & host_ok"
+    },
+    {
+      "name": "urgent_dropped",
+      "task": "lat1_reg0",
+      "expect": [
+        "a_urgent"
+      ],
+      "file": "rtl:blns_vram_arb.v",
+      "from": "urg_req   =  req_i & urgent_i & URG_MASK;",
+      "to": "urg_req   =  {RQ_N{1'b0}};"
+    },
+    {
+      "name": "host_never",
+      "task": "lat1_reg0",
+      "expect": [
+        "a_win",
+        "a_work"
+      ],
+      "file": "rtl:blns_vram_arb.v",
+      "from": "host_ok   = ~urg_blk & ~age_first;",
+      "to": "host_ok   = 1'b0;"
+    },
+    {
+      "name": "no_aging",
+      "task": "lat1_reg0",
+      "expect": [
+        "a_gpu_starve",
+        "a_gpu_aged"
+      ],
+      "file": "rtl:blns_vram_arb.v",
+      "from": "assign age_first = (age_wait == AGE_MAX[AGE_W-1:0]);",
+      "to": "assign age_first = 1'b0;"
+    },
+    {
+      "name": "age_early",
+      "task": "lat1_reg0",
+      "expect": [
+        "a_win",
+        "a_age_link"
+      ],
+      "file": "rtl:blns_vram_arb.v",
+      "from": "assign age_first = (age_wait == AGE_MAX[AGE_W-1:0]);",
+      "to": "assign age_first = (age_wait == AGE_MAX[AGE_W-1:0] - 1'b1);"
+    },
+    {
+      "name": "age_counts_urgent",
+      "task": "lat1_reg0",
+      "expect": [
+        "a_age_link",
+        "a_win"
+      ],
+      "file": "rtl:blns_vram_arb.v",
+      "from": "age_lost     = req_i[AGE_IDX] & (|(gnt_o & HOST_MASK));",
+      "to": "age_lost     = req_i[AGE_IDX] & ~gnt_o[AGE_IDX];"
+    },
+    {
+      "name": "age_stuck",
+      "task": "lat1_reg0",
+      "expect": [
+        "a_win_starve",
+        "a_win"
+      ],
+      "file": "rtl:blns_vram_arb.v",
+      "from": "age_wait_en  = age_lost | (age_clr & (age_wait != {AGE_W{1'b0}}));",
+      "to": "age_wait_en  = age_lost;"
+    },
+    {
+      "name": "aged_still_loses",
+      "task": "lat1_reg0",
+      "expect": [
+        "a_lost_bound",
+        "a_gpu_starve"
+      ],
+      "edits": [
+        [
+          "rtl:blns_vram_arb.v",
+          "host_ok   = ~urg_blk & ~age_first;",
+          "host_ok   = ~urg_blk;"
+        ],
+        [
+          "rtl:blns_vram_arb.v",
+          "nrm_ok    = ~urg_any & (~host_req | age_first);",
+          "nrm_ok    = ~urg_any & ~host_req;"
+        ]
+      ]
+    },
+    {
+      "name": "class_order_reversed",
+      "task": "lat1_reg0",
+      "expect": [
+        "a_gpu_normal",
+        "a_wait_link"
+      ],
+      "file": "rtl:blns_vram_arb.v",
+      "from": "localparam [RQ_N-1:0] AHEAD = ~({RQ_N{1'b1}} << gi);",
+      "to": "localparam [RQ_N-1:0] AHEAD = ({RQ_N{1'b1}} << (gi + 1));"
+    },
+    {
+      "name": "refresh_not_normal",
+      "task": "lat1_reg0",
+      "expect": [
+        "a_bk_normal",
+        "a_work"
+      ],
+      "file": "rtl:blns_vram_arb.v",
+      "from": "        wire       nrm_gnt  = NRM_MASK[gi]  & req_i[gi] & nrm_ok  & ~|(req_i & NRM_MASK  & AHEAD);",
+      "to": "        wire       nrm_gnt  = NRM_MASK[gi] & ~URG_MASK[gi] & req_i[gi] & nrm_ok  & ~|(req_i & NRM_MASK  & AHEAD);"
+    },
+    {
+      "name": "idle_beside_host",
+      "task": "lat1_reg0",
+      "expect": [
+        "a_idle_only",
+        "a_onehot"
+      ],
+      "file": "rtl:blns_vram_arb.v",
+      "from": "busy      = |(req_i & ~IDLE_MASK);",
+      "to": "busy      = |(req_i & ~IDLE_MASK & ~HOST_MASK);"
+    },
+    {
+      "name": "cen_misses_idle",
+      "task": "lat1_reg0",
+      "expect": [
+        "a_cen"
+      ],
+      "file": "rtl:blns_vram_arb.v",
+      "from": "((|(req_i & IDLE_MASK))  & ~busy);",
+      "to": "1'b0;"
+    },
+    {
+      "name": "addr_by_req",
+      "task": "lat1_reg0",
+      "expect": [
+        "a_mux_win",
+        "a_mux_gpu",
+        "a_mux_bk",
+        "a_mux_wp"
+      ],
+      "file": "rtl:blns_vram_arb.v",
+      "from": "|(gnt_o & addr_col[bi]);",
+      "to": "|(req_i & addr_col[bi]);"
+    },
+    {
+      "name": "din_by_req",
+      "task": "lat1_reg0",
+      "expect": [
+        "a_mux_win",
+        "a_mux_gpu",
+        "a_mux_bk",
+        "a_mux_wp"
+      ],
+      "file": "rtl:blns_vram_arb.v",
+      "from": "|(gnt_o & din_col[bi]);",
+      "to": "|(req_i & din_col[bi]);"
+    },
+    {
+      "name": "wen_ignores_we",
+      "task": "lat1_reg0",
+      "expect": [
+        "a_mux_win",
+        "a_mux_gpu",
+        "a_mux_bk",
+        "a_mux_wp"
+      ],
+      "file": "rtl:blns_vram_arb.v",
+      "from": "assign wbe_col[bi][gi]  = we_i[gi] & be_i[gi*4 + bi];",
+      "to": "assign wbe_col[bi][gi]  = be_i[gi*4 + bi];"
+    },
+    {
+      "name": "wen_when_idle",
+      "task": "lat1_reg0",
+      "expect": [
+        "a_idle"
+      ],
+      "file": "rtl:blns_vram_arb.v",
+      "from": "assign vram_wen_o[bi]  = ~(|(gnt_o & wbe_col[bi]));",
+      "to": "assign vram_wen_o[bi]  = ~((|(gnt_o & wbe_col[bi])) | ((|we_i) & be_i[bi]));"
+    },
+    {
+      "name": "rvalid_wrong_stage_id",
+      "task": "lat2_reg0",
+      "expect": [
+        "a_rvalid"
+      ],
+      "file": "rtl:blns_vram_arb.v",
+      "from": "assign rvalid_o[gi] = rd_v[RD_L-1] & (rd_id[(RD_L-1)*ID_W +: ID_W] == IDX);",
+      "to": "assign rvalid_o[gi] = rd_v[RD_L-1] & (rd_id[0 +: ID_W] == IDX);"
+    },
+    {
+      "name": "rvalid_early",
+      "task": "lat3_reg0",
+      "expect": [
+        "a_rvalid"
+      ],
+      "file": "rtl:blns_vram_arb.v",
+      "from": "assign rvalid_o[gi] = rd_v[RD_L-1] & (rd_id[(RD_L-1)*ID_W +: ID_W] == IDX);",
+      "to": "assign rvalid_o[gi] = rd_v[RD_L-2] & (rd_id[(RD_L-1)*ID_W +: ID_W] == IDX);"
+    },
+    {
+      "name": "writes_tracked",
+      "task": "lat1_reg0",
+      "expect": [
+        "a_rvalid",
+        "a_rd_pend"
+      ],
+      "file": "rtl:blns_vram_arb.v",
+      "from": "wire         [RQ_N-1:0] rd_gnt  = gnt_o & ~we_i & RQ_EN;",
+      "to": "wire         [RQ_N-1:0] rd_gnt  = gnt_o & RQ_EN;"
+    },
+    {
+      "name": "tag_any_requester",
+      "task": "lat1_reg0",
+      "expect": [
+        "a_rtag"
+      ],
+      "file": "rtl:blns_vram_arb.v",
+      "from": "assign tag_in = |(rd_gnt & tag_i & TAG_MASK);",
+      "to": "assign tag_in = |(rd_gnt & tag_i);"
+    },
+    {
+      "name": "tag_wrong_stage",
+      "task": "lat3_reg0",
+      "expect": [
+        "a_rtag"
+      ],
+      "file": "rtl:blns_vram_arb.v",
+      "from": "assign tag_in =  rd_tag[si-1];",
+      "to": "assign tag_in =  rd_tag[0];"
+    },
+    {
+      "name": "rdata_reg_early",
+      "task": "lat2_reg1",
+      "expect": [
+        "a_rdata_reg"
+      ],
+      "file": "rtl:blns_vram_arb.v",
+      "from": "assign rd_mac = rd_v[RD_LAT-1];",
+      "to": "assign rd_mac = rd_v[0];"
+    },
+    {
+      "name": "rdata_unreg_from_reg",
+      "task": "lat1_reg0",
+      "expect": [
+        "a_rdata"
+      ],
+      "edits": [
+        [
+          "rtl:blns_vram_arb.v",
+          "assign rdata_o = vram_dout_i;",
+          "assign rdata_o = ~vram_dout_i;"
+        ]
+      ]
+    },
+    {
+      "name": "rd_pend_drops_at_return",
+      "task": "lat2_reg1",
+      "expect": [
+        "a_rd_pend"
+      ],
+      "file": "rtl:blns_vram_arb.v",
+      "from": "assign                  rd_pend_o   = |rd_v;",
+      "to": "assign                  rd_pend_o   = |(rd_v & ~({{(RD_L-1){1'b0}}, 1'b1} << (RD_L-1)));"
+    },
+    {
+      "name": "rd_pend_late",
+      "task": "lat1_reg0",
+      "expect": [
+        "a_rd_pend"
+      ],
+      "file": "rtl:blns_vram_arb.v",
+      "from": "assign                  rd_pend_o   = |rd_v;",
+      "to": "assign                  rd_pend_o   = |rd_v | (|(gnt_o & ~we_i));"
+    },
+    {
+      "name": "tag_gpu_only",
+      "task": "lat1_reg0",
+      "expect": [
+        "a_rtag"
+      ],
+      "file": "rtl:blns_vram_arb.v",
+      "from": "assign tag_in = |(rd_gnt & tag_i & TAG_MASK);",
+      "to": "assign tag_in = rd_gnt[1] & tag_i[1];"
+    },
+    {
+      "name": "rvalid_nxt_stage",
+      "task": "lat1_reg1",
+      "file": "rtl:blns_vram_arb.v",
+      "from": "            assign rvalid_nxt_o[gi] = rd_v[RD_L-2] & (rd_id[(RD_L-2)*ID_W +: ID_W] == IDX);",
+      "to": "            assign rvalid_nxt_o[gi] = rd_v[RD_L-1] & (rd_id[(RD_L-1)*ID_W +: ID_W] == IDX);",
+      "expect": [
+        "a_rvalid_nxt"
+      ]
+    },
+    {
+      "name": "rvalid_nxt_gnt_any",
+      "task": "lat1_reg0",
+      "file": "rtl:blns_vram_arb.v",
+      "from": "            assign rvalid_nxt_o[gi] = rd_gnt[gi];",
+      "to": "            assign rvalid_nxt_o[gi] = gnt_o[gi];",
+      "expect": [
+        "a_rvalid_nxt"
+      ]
+    }
+  ]
+}

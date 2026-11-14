@@ -1,0 +1,18 @@
+`verilator_config
+//----------------------------------------------------------------------------
+//          _    _           Family:    aRVern Graphic Controller
+//         / \__/ \          Module:    waivers
+//        /   /\   \         --------------------------------------------
+//    ===/   /=========      Copyright: (c) 2026, aRVern-dev
+//      /   / RV \   \       Contact:   arvernsilicon@gmail.com
+//     /___/______\___\      GitHub:    https://github.com/Arvern-Silicon
+//
+// SPDX-License-Identifier: BSD-3-Clause
+// Full license text is available in the LICENSE file at the repository root.
+//----------------------------------------------------------------------------
+// File Name          : waivers.vlt
+// Module Description : Verilator lint waivers for belenos (run_lint).
+//----------------------------------------------------------------------------
+// Empty: Verilator's default --unused-regexp ("*unused*") already exempts the
+// aRVern *_unused sink wires; add a scoped lint_off here with its reason when a
+// finding is accepted rather than fixed.

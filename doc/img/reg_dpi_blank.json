@@ -1,0 +1,6 @@
+{reg: [
+  {bits: 10, name: 'FRONT PORCH'},
+  {bits: 10, name: 'SYNC WIDTH'},
+  {bits: 10, name: 'BACK PORCH'},
+  {bits: 2}
+], config: {bits: 32, lanes: 1, hspace: 900}}

@@ -1,0 +1,149 @@
+#!/usr/bin/env python3
+#----------------------------------------------------------------------------
+#          _    _           Family:    aRVern Graphic Controller
+#         / \__/ \          Script:    run_all (belenos formal)
+#        /   /\   \         --------------------------------------------
+#    ===/   /=========      Copyright: (c) 2026, aRVern-dev
+#      /   / RV \   \       Contact:   arvernsilicon@gmail.com
+#     /___/______\___\      GitHub:    https://github.com/Arvern-Silicon
+#
+# SPDX-License-Identifier: BSD-3-Clause
+# Full license text is available in the LICENSE file at the repository root.
+#----------------------------------------------------------------------------
+# Runs the formal proofs (formal/<name>/proof.json, see common/fv.py) and
+# prints PASS / FAIL per task.
+#
+#   ./run_all                  every task of every proof
+#   ./run_all vram_arb fifo_*  the proofs named (shell patterns)
+#   ./run_all vram_arb:lat2    one task
+#   ./run_all -mutate [names]  the mutation checks instead: each proof's
+#                              mutations, applied to a temporary RTL copy,
+#                              must make its bounded check fail on the
+#                              assertion they target ("killed")
+#   -all                       also the slow tasks ("slow" in proof.json: the
+#                              deep multi-clock checks, tens of minutes each)
+#   -j N                       parallel tasks (default 2: each is CPU-heavy)
+#   -list                      list the proofs and tasks
+#
+# Exit status 0 when every task passes (or every mutation is killed).
+# Work files: formal/<name>/work/<task>/ (models, logs, counterexample VCDs).
+#----------------------------------------------------------------------------
+
+import fnmatch
+import os
+import sys
+from concurrent.futures import ThreadPoolExecutor
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'common'))
+import fv  # noqa: E402
+
+
+def select(patterns, slow=False):
+    proofs = fv.find_proofs()
+    jobs = []
+    for name in proofs:
+        tdict = fv.load_proof(name)['tasks']
+        tasks = [t for t in tdict if slow or patterns or not tdict[t].get('slow')]
+        for t in tasks:
+            if not patterns:
+                jobs.append((name, t))
+                continue
+            for p in patterns:
+                pn, _, pt = p.partition(':')
+                if fnmatch.fnmatch(name, pn) and (not pt or fnmatch.fnmatch(t, pt)):
+                    jobs.append((name, t))
+                    break
+    return jobs
+
+
+def fmt_task(r):
+    steps = ' '.join('%s=%s' % (k, v) for k, v in r['steps'].items())
+    extra = ''
+    if 'covers' in r:
+        extra += ' covers=%d' % r['covers']
+    if r.get('unreached'):
+        extra += ' unreached=%s' % ','.join(r['unreached'])
+    if r['failed']:
+        extra += ' failed=%s' % ','.join(r['failed'])
+    if r.get('comb_inputs'):
+        extra += ' comb_inputs=%s' % ','.join(r['comb_inputs'])
+    return '%-7s %-28s depth %-3d %6.1fs  %s%s' % (r['status'], '%s:%s' % (r['proof'], r['task']),
+                                                   r['depth'], r['time'], steps, extra)
+
+
+def main(argv):
+    jobs_n, mutate, listing, pats, slow = 2, False, False, [], False
+    i = 0
+    while i < len(argv):
+        a = argv[i]
+        if a == '-j':
+            i += 1
+            jobs_n = int(argv[i])
+        elif a == '-mutate':
+            mutate = True
+        elif a == '-list':
+            listing = True
+        elif a == '-all':
+            slow = True
+        elif a in ('-h', '-help', '--help'):
+            print(__doc__ or open(__file__).read().split('#---')[2])
+            return 0
+        else:
+            pats.append(a)
+        i += 1
+
+    jobs = select(pats, slow)
+    if not jobs:
+        print('run_all: no proof matches %s' % ' '.join(pats))
+        return 1
+    if listing:
+        for name, t in jobs:
+            task = fv.load_proof(name)['tasks'][t]
+            print('%-28s depth %-3d %-9s %s%s' % ('%s:%s' % (name, t), task['depth'],
+                  'induction' if task.get('induction') else 'bounded',
+                  '(slow) ' if task.get('slow') else '', task.get('note', '')))
+        return 0
+
+    if mutate:
+        muts = []
+        for name in sorted(set(n for n, _ in jobs)):
+            for m in fv.load_proof(name).get('mutations', []):
+                muts.append((name, m))
+        with ThreadPoolExecutor(max_workers=jobs_n) as ex:
+            results = list(ex.map(lambda nm: fv.run_mutation(*nm), muts))
+        bad = 0
+        for (name, m), r in zip(muts, results):
+            ok = r['killed']
+            bad += not ok
+            print('%-7s %-40s %6.1fs  %s -> %s (expected %s)' % (
+                'KILLED' if ok else 'SURVIVED', '%s:%s' % (name, m['name']), r['time'], r['task'],
+                ','.join(r['failed']) or r['status'], ','.join(m['expect'])))
+        # Every a_* assertion of a proof must fail on at least one mutation
+        unkilled = 0
+        for name in sorted(set(n for n, _ in muts)):
+            seen = set()
+            for (n, m), r in zip(muts, results):
+                if n == name:
+                    seen.update(r['failed'])
+            miss = [l for l in fv.assert_labels(name) if not any(s == l or s.startswith(l + '.') for s in seen)]
+            if miss:
+                unkilled += len(miss)
+                print('NOT-SHOWN %s: no mutation fails %s' % (name, ', '.join(miss)))
+        print('%d mutations, %d killed, %d survived; %d assertions never failed' % (
+            len(results), len(results) - bad, bad, unkilled))
+        return 1 if bad or unkilled else 0
+
+    with ThreadPoolExecutor(max_workers=jobs_n) as ex:
+        futs = [ex.submit(fv.run_task, n, t) for n, t in jobs]
+        results = []
+        for f in futs:
+            r = f.result()
+            results.append(r)
+            print(fmt_task(r), flush=True)
+    bad = [r for r in results if r['status'] != 'PASS']
+    print('%d tasks, %d PASS, %d FAIL' % (len(results), len(results) - len(bad), len(bad)))
+    return 1 if bad else 0
+
+
+if __name__ == '__main__':
+    sys.exit(main(sys.argv[1:]))

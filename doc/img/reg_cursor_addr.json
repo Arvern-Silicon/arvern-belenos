@@ -1,0 +1,5 @@
+{reg: [
+  {bits: 7, name: '0'},
+  {bits: 17, name: 'ADDR  [VRAM_AW-1:7]'},
+  {bits: 8}
+], config: {bits: 32, lanes: 1, hspace: 900, vspace: 80}}

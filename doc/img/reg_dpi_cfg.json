@@ -1,0 +1,16 @@
+{reg: [
+  {bits: 1, name: 'LCD_ON', rotate: -90},
+  {bits: 1, name: 'LCD_RESET', rotate: -90},
+  {bits: 1},
+  {bits: 1, name: 'DPI_EN', rotate: -90},
+  {bits: 4},
+  {bits: 4, name: 'CLK_DIV'},
+  {bits: 4},
+  {bits: 1, name: 'PCLK_EDGE', rotate: -90},
+  {bits: 1, name: 'HS_POL', rotate: -90},
+  {bits: 1, name: 'VS_POL', rotate: -90},
+  {bits: 1, name: 'DE_POL', rotate: -90},
+  {bits: 1, name: 'BGR', rotate: -90},
+  {bits: 1, name: 'FILTER', rotate: -90},
+  {bits: 10}
+], config: {bits: 32, lanes: 1, hspace: 900, vspace: 170}}

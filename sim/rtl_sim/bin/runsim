@@ -1,0 +1,126 @@
+#!/bin/bash
+#----------------------------------------------------------------------------
+#          _    _           Family:    aRVern Graphic Controller
+#         / \__/ \          Module:    runsim
+#        /   /\   \         --------------------------------------------
+#    ===/   /=========      Copyright: (c) 2026, aRVern-dev
+#      /   / RV \   \       Contact:   arvernsilicon@gmail.com
+#     /___/______\___\      GitHub:    https://github.com/Arvern-Silicon
+#
+# SPDX-License-Identifier: BSD-3-Clause
+# Full license text is available in the LICENSE file at the repository root.
+#----------------------------------------------------------------------------
+# File Name          : runsim
+# Module Description : Run a single RTL simulation by test name (with
+#                      optional random seed).
+#                      The build and the simulation run in a work directory
+#                      of their own (WORK/run_<test>_<pid>/, removed at the
+#                      end), so several ./run and ./run_all can go in one run
+#                      directory at once. The waveform and the GPU trace
+#                      (tb_belenos.vcd, slipstream.log) are then moved to the
+#                      run directory: the last run to finish leaves its own.
+#----------------------------------------------------------------------------
+
+###############################################################################
+#                            Parse arguments                                  #
+###############################################################################
+testname=""
+seed=""
+while [[ $# > 0 ]]; do
+    key="$1"
+    shift
+    case $key in
+	-seed)
+	    seed="$1"
+	    shift
+	    ;;
+	*)
+            testname="$key"
+	    ;;
+    esac
+done
+
+###############################################################################
+#                            Parameter Check                                  #
+###############################################################################
+if [ "$testname" == "" ]; then
+  echo "ERROR	 : missing argument"
+  echo "USAGE	 : runsim <test name> [-seed <seed_nr>]"
+  echo "Example	 : runsim smoke_regs"
+  echo ""
+  echo "In order to switch the verilog simulator, the VERILOG_SIMULATOR environment"
+  echo "variable can be set to the following values:"
+  echo ""
+  echo "		  - iverilog  : Icarus Verilog	(default)"
+  echo "		  - verilator : Verilator"
+  echo "		  - cver      : CVer"
+  echo "		  - verilog   : Verilog-XL"
+  echo "		  - ncverilog : NC-Verilog"
+  echo "		  - vcs	      : VCS"
+  echo "		  - vsim      : Modelsim"
+  echo ""
+  exit 1
+fi
+
+# Generate random seed if not specified
+if [ "$seed" == "" ]; then
+    seed=`od -A n -t d -N 4 /dev/urandom`
+fi
+
+###############################################################################
+#                     Check if the required files exist                       #
+###############################################################################
+RUN_DIR=$(pwd)
+BIN_DIR=$(cd "$(dirname "$0")" && pwd)
+verfile=$(cd ../src 2>/dev/null && pwd)/$testname.v;
+submitfile=$(cd ../../../bench/verilog 2>/dev/null && pwd)/submit.f;
+
+if [ ! -e $verfile ]; then
+    echo "Verilog stimulus file $verfile doesn't exist: $verfile"
+    exit 1
+fi
+if [ ! -e $submitfile ]; then
+    echo "Verilog submit file $submitfile doesn't exist: $submitfile"
+    exit 1
+fi
+
+
+###############################################################################
+#                               Cleanup                                       #
+###############################################################################
+WORK_DIR="$RUN_DIR/WORK/run_${testname}_$$"
+echo "Work directory: ${WORK_DIR#$RUN_DIR/}"
+rm -rf "$WORK_DIR"
+mkdir -p "$WORK_DIR" || exit 1
+trap 'rm -rf "$WORK_DIR"' EXIT
+cd "$WORK_DIR" || exit 1
+
+
+###############################################################################
+#                              Run simulation                                 #
+###############################################################################
+echo " ======================================================="
+echo "| Start simulation:             $testname"
+echo " ======================================================="
+echo ""
+echo " Seed: $seed"
+echo ""
+
+# Create links
+if [[ $(uname -s) == CYGWIN* ]];
+then
+    cp $verfile stimulus.v
+else
+    ln -s $verfile stimulus.v
+fi
+
+# Start verilog simulation
+echo "Start Verilog simulation..."
+"$BIN_DIR/rtlsim.sh" stimulus.v "$submitfile" $seed
+rc=$?
+
+# The waveform and the trace go back to the run directory (rename: atomic)
+for f in *.vcd *.vpd *.trn *.fst slipstream.log; do
+    [ -e "$f" ] && mv -f "$f" "$RUN_DIR/"
+done
+exit $rc

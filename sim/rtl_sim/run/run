@@ -1,0 +1,85 @@
+#!/bin/bash
+#----------------------------------------------------------------------------
+#          _    _           Family:    aRVern Graphic Controller
+#         / \__/ \          Module:    run
+#        /   /\   \         --------------------------------------------
+#    ===/   /=========      Copyright: (c) 2026, aRVern-dev
+#      /   / RV \   \       Contact:   arvernsilicon@gmail.com
+#     /___/______\___\      GitHub:    https://github.com/Arvern-Silicon
+#
+# SPDX-License-Identifier: BSD-3-Clause
+# Full license text is available in the LICENSE file at the repository root.
+#----------------------------------------------------------------------------
+# File Name          : run
+# Module Description : Run one belenos simulation test.
+#                        ./run [<test>] [-rtl_config N|label] [-seed N] [-nodump]
+#                        ./run <test> -cov [-rtl_config ...]  Verilator coverage
+#                                             of that one pair (cov/single/)
+#                        ./run -list          the tests of run_config.json
+#                        ./run -list_configs  the configs (./run_all numbering)
+#                      Without -rtl_config the test runs in the default build
+#                      (run_config.json defaults); a test whose `requires`
+#                      fails there runs anyway, with a note, and usually
+#                      reports SKIPPED. BLNS_DEFINES="BLNS_<P>=<v> ..."
+#                      overrides single parameters on top of the config.
+#----------------------------------------------------------------------------
+
+# Enable/Disable waveform dumping
+SIMULATION_NODUMP=${SIMULATION_NODUMP:-0}
+export SIMULATION_NODUMP
+
+# Choose simulator (environment override allowed):
+#                   - iverilog  : Icarus Verilog  (default)
+#                   - verilator : Verilator (--binary --timing)
+#                   - cver      : CVer
+#                   - verilog   : Verilog-XL
+#                   - ncverilog : NC-Verilog
+#                   - vcs       : VCS
+#                   - vsim      : Modelsim
+VERILOG_SIMULATOR=${VERILOG_SIMULATOR:-iverilog}
+export VERILOG_SIMULATOR
+
+# Default test name
+testname="smoke_regs"
+seed_args=""
+rtl_config=""
+cov=0
+TC=../bin/test_config.py
+
+# Parse arguments
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        -seed)         seed_args="-seed $2"; shift 2 ;;
+        -nodump)       SIMULATION_NODUMP=1; export SIMULATION_NODUMP; shift ;;
+        -rtl_config)   rtl_config="$2"; shift 2 ;;
+        -cov)          cov=1; shift ;;
+        -list)         python3 $TC --list-tests; exit $? ;;
+        -list_configs) python3 $TC --list-configs; exit $? ;;
+        -*)            echo "[ERROR] Unknown option: $1"; exit 1 ;;
+        *)
+            if [ ! -e "../src/$1.v" ]; then
+               echo "[ERROR] File does not exist: ../src/$1.v"
+               echo ""
+               echo "The following tests are registered (./run -list for the details):"
+               python3 $TC --list-tests | awk '{print "   + " $1}'
+               exit 1
+            fi
+            testname=$1; shift ;;
+    esac
+done
+
+# Coverage of the single pair
+if [ $cov -eq 1 ]; then
+    label=$(python3 -c "import sys; sys.path.insert(0,'../bin'); import test_config as t; print(t.resolve(sys.argv[1] or None)[0])" "$rtl_config") || exit 1
+    exec ../bin/runcov "$label:$testname"
+fi
+
+# Every parameter of the selected config as a bench define
+BLNS_DEFINES=$(python3 $TC --defines "$rtl_config") || exit 1
+BLNS_DEFINES="$BLNS_DEFINES $(python3 $TC --test-defines "$testname")"
+export BLNS_DEFINES
+echo " Config: ${rtl_config:-default}"
+python3 $TC --applies "$testname" "$rtl_config" | sed 's/^/ NOTE: /'
+
+# Run simulation
+../bin/runsim $testname $seed_args

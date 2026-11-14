@@ -1,0 +1,13 @@
+{reg: [
+  {bits: 2},
+  {bits: 1, name: 'OPQ', rotate: -90},
+  {bits: 1, name: 'MASK', rotate: -90},
+  {bits: 1, name: 'D.CL', rotate: -90},
+  {bits: 1, name: 'D.Y', rotate: -90},
+  {bits: 1, name: 'D.X', rotate: -90},
+  {bits: 1},
+  {bits: 4, name: 'ROP'},
+  {bits: 2, name: 'REMAP', rotate: -90},
+  {bits: 14, name: 'DELTA (signed)'},
+  {bits: 4, name: '0xC', attr: 'EXEC_EXPAND'}
+], config: {bits: 32, lanes: 1, hspace: 900, vspace: 150}}

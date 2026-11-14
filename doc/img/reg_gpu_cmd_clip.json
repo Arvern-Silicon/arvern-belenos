@@ -1,0 +1,6 @@
+{reg: [
+  {bits: 12, name: 'X0 (signed)'},
+  {bits: 12, name: 'Y0 (signed)'},
+  {bits: 4, name: '4 (CLIP)'},
+  {bits: 4, name: '0x6', attr: 'SET_CLIP'}
+], config: {bits: 32, lanes: 1, hspace: 900}}

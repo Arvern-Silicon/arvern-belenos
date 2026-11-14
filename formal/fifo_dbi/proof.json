@@ -1,0 +1,188 @@
+{
+  "description": "blns_dbi_fifo: level, FULL/EMPTY, no overflow/underflow, order (tracked entry)",
+  "top": "fifo_dbi_fv",
+  "clocking": "single",
+  "files": [
+    "ips:arv_ipdff.v",
+    "rtl:blns_dbi_fifo.v",
+    "fifo_dbi_fv.sv"
+  ],
+  "tasks": {
+    "order": {
+      "params": {},
+      "depth": 10,
+      "induction": true,
+      "cover": true,
+      "cover_depth": 20,
+      "note": "16 entries: k-induction with pointer/slot lemmas",
+      "probes": {
+        "p_wr_ptr": "u_dut.u_wr_ptr.q_o",
+        "p_rd_ptr": "u_dut.u_rd_ptr.q_o",
+        "p_mem[15:0]": "\\u_dut.mem[0]",
+        "p_mem[31:16]": "\\u_dut.mem[1]",
+        "p_mem[47:32]": "\\u_dut.mem[2]",
+        "p_mem[63:48]": "\\u_dut.mem[3]",
+        "p_mem[79:64]": "\\u_dut.mem[4]",
+        "p_mem[95:80]": "\\u_dut.mem[5]",
+        "p_mem[111:96]": "\\u_dut.mem[6]",
+        "p_mem[127:112]": "\\u_dut.mem[7]",
+        "p_mem[143:128]": "\\u_dut.mem[8]",
+        "p_mem[159:144]": "\\u_dut.mem[9]",
+        "p_mem[175:160]": "\\u_dut.mem[10]",
+        "p_mem[191:176]": "\\u_dut.mem[11]",
+        "p_mem[207:192]": "\\u_dut.mem[12]",
+        "p_mem[223:208]": "\\u_dut.mem[13]",
+        "p_mem[239:224]": "\\u_dut.mem[14]",
+        "p_mem[255:240]": "\\u_dut.mem[15]"
+      },
+      "probes_mem": [
+        "p_mem[15:0]",
+        "p_mem[31:16]",
+        "p_mem[47:32]",
+        "p_mem[63:48]",
+        "p_mem[79:64]",
+        "p_mem[95:80]",
+        "p_mem[111:96]",
+        "p_mem[127:112]",
+        "p_mem[143:128]",
+        "p_mem[159:144]",
+        "p_mem[175:160]",
+        "p_mem[191:176]",
+        "p_mem[207:192]",
+        "p_mem[223:208]",
+        "p_mem[239:224]",
+        "p_mem[255:240]"
+      ]
+    },
+    "order_srst": {
+      "params": {
+        "ASYNC_RST_EN": 0
+      },
+      "depth": 10,
+      "induction": true,
+      "cover": false,
+      "note": "synchronous reset",
+      "probes": {
+        "p_wr_ptr": "u_dut.u_wr_ptr.q_o",
+        "p_rd_ptr": "u_dut.u_rd_ptr.q_o",
+        "p_mem[15:0]": "\\u_dut.mem[0]",
+        "p_mem[31:16]": "\\u_dut.mem[1]",
+        "p_mem[47:32]": "\\u_dut.mem[2]",
+        "p_mem[63:48]": "\\u_dut.mem[3]",
+        "p_mem[79:64]": "\\u_dut.mem[4]",
+        "p_mem[95:80]": "\\u_dut.mem[5]",
+        "p_mem[111:96]": "\\u_dut.mem[6]",
+        "p_mem[127:112]": "\\u_dut.mem[7]",
+        "p_mem[143:128]": "\\u_dut.mem[8]",
+        "p_mem[159:144]": "\\u_dut.mem[9]",
+        "p_mem[175:160]": "\\u_dut.mem[10]",
+        "p_mem[191:176]": "\\u_dut.mem[11]",
+        "p_mem[207:192]": "\\u_dut.mem[12]",
+        "p_mem[223:208]": "\\u_dut.mem[13]",
+        "p_mem[239:224]": "\\u_dut.mem[14]",
+        "p_mem[255:240]": "\\u_dut.mem[15]"
+      },
+      "probes_mem": [
+        "p_mem[15:0]",
+        "p_mem[31:16]",
+        "p_mem[47:32]",
+        "p_mem[63:48]",
+        "p_mem[79:64]",
+        "p_mem[95:80]",
+        "p_mem[111:96]",
+        "p_mem[127:112]",
+        "p_mem[143:128]",
+        "p_mem[159:144]",
+        "p_mem[175:160]",
+        "p_mem[191:176]",
+        "p_mem[207:192]",
+        "p_mem[223:208]",
+        "p_mem[239:224]",
+        "p_mem[255:240]"
+      ]
+    }
+  },
+  "mutations": [
+    {
+      "name": "push_when_full",
+      "task": "order",
+      "file": "rtl:blns_dbi_fifo.v",
+      "from": "assign push_ok    = push_i & ~level[4];",
+      "to": "assign push_ok    = push_i;",
+      "expect": [
+        "a_level",
+        "a_no_ovfl",
+        "a_order"
+      ],
+      "depth": 20
+    },
+    {
+      "name": "pop_when_empty",
+      "task": "order",
+      "file": "rtl:blns_dbi_fifo.v",
+      "from": "assign pop_ok     = pop_i  & ~empty_o;",
+      "to": "assign pop_ok     = pop_i;",
+      "expect": [
+        "a_level",
+        "a_empty"
+      ],
+      "depth": 10
+    },
+    {
+      "name": "full_wrong",
+      "task": "order",
+      "file": "rtl:blns_dbi_fifo.v",
+      "from": "assign full_o     = level[4];",
+      "to": "assign full_o     = &level[3:0];",
+      "expect": [
+        "a_full"
+      ],
+      "depth": 20
+    },
+    {
+      "name": "empty_wrong",
+      "task": "order",
+      "file": "rtl:blns_dbi_fifo.v",
+      "from": "assign empty_o    = (level == 5'd0);",
+      "to": "assign empty_o    = (level <= 5'd1);",
+      "expect": [
+        "a_empty"
+      ],
+      "depth": 10
+    },
+    {
+      "name": "pushpop_level",
+      "task": "order",
+      "file": "rtl:blns_dbi_fifo.v",
+      "from": "assign level_en   = push_ok ^ pop_ok;",
+      "to": "assign level_en   = push_ok | pop_ok;",
+      "expect": [
+        "a_level"
+      ],
+      "depth": 10
+    },
+    {
+      "name": "entry_wrong_slot",
+      "task": "order",
+      "file": "rtl:blns_dbi_fifo.v",
+      "from": "    if (push_ok) mem[wr_ptr] <= push_data;",
+      "to": "    if (push_ok) mem[rd_ptr] <= push_data;",
+      "expect": [
+        "a_order"
+      ],
+      "depth": 10
+    },
+    {
+      "name": "head_wrong",
+      "task": "order",
+      "file": "rtl:blns_dbi_fifo.v",
+      "from": "wire             [DW-1:0] head    = {DW{~empty_o}} & mem[rd_ptr];",
+      "to": "wire             [DW-1:0] head    = {DW{~empty_o}} & mem[wr_ptr];",
+      "expect": [
+        "a_order"
+      ],
+      "depth": 10
+    }
+  ],
+  "probes": {}
+}

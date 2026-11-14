@@ -1,0 +1,10 @@
+{reg: [
+  {bits: 1, name: 'LCD_ON', rotate: -90},
+  {bits: 1, name: 'LCD_RESET', rotate: -90},
+  {bits: 1, name: 'PHY_SEL', rotate: -90},
+  {bits: 1},
+  {bits: 4, name: 'RD_DIV'},
+  {bits: 4, name: 'CLK_DIV'},
+  {bits: 1, name: 'HW_WINDOW_EN', rotate: -90},
+  {bits: 19}
+], config: {bits: 32, lanes: 1, hspace: 900, vspace: 170}}

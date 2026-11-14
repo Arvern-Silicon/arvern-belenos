@@ -1,0 +1,13 @@
+{signal: [
+  {name: 'hclk',             wave: 'p.......'},
+  {name: 'AHB phase',        wave: 'x345x...', data: ['address','data (wait)','data (done)']},
+  {name: 'bdi_reg_sel_o',    wave: '0.1.0...'},
+  {name: 'bdi_reg_addr_o',   wave: 'x.3.x...', data: ['DIF_STATUS']},
+  {name: 'bdi_reg_wr_o',     wave: 'x.0.x...'},
+  {name: 'bdi_reg_ready_i',  wave: 'x.01x...'},
+  {name: 'bdi_reg_rdata_i',  wave: 'x..3x...', data: ['value']},
+  {name: 'r_hreadyout_o',    wave: '1.01....'}
+],
+  head: {text: 'BDI register window: a read the driver answers after one wait state'},
+  config: {hscale: 2}
+}

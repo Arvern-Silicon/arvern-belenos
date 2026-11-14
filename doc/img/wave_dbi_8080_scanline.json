@@ -1,0 +1,12 @@
+{signal: [
+  {name: 'lcd_cs_n_o',  wave: '0...............'},
+  {name: 'lcd_dc_o',    wave: '0.1...........0.'},
+  {name: 'lcd_wr_n_o',  wave: '01............01'},
+  {name: 'lcd_rd_n_o',  wave: '1..01.01.01.....'},
+  {name: 'lcd_d_oe_o',  wave: '1.0........1....'},
+  {name: 'lcd_d_o',     wave: '3.............3.', data: ['0x45','0x45']},
+  {name: 'lcd_d_i',     wave: 'x..2x.3x.4x.....', data: ['dummy','GTS[9:8]','GTS[7:0]']}
+],
+  head: {text: '8080 PHY, CLK_DIV = 0, RD_DIV = 0: one Get_Scanline poll (SCAN_SYNC_EN); the bus is released one cycle before each RD falls'},
+  config: {hscale: 1.5}
+}

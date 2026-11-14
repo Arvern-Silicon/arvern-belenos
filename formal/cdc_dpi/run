@@ -1,0 +1,3 @@
+#!/bin/sh
+# Runs this proof's tasks (formal/run_all cdc_dpi); -mutate runs its mutations.
+exec "$(dirname "$0")/../run_all" "$@" cdc_dpi

@@ -1,0 +1,372 @@
+{
+  "description": "blns_ahb_vram behind the real arbiter: read-ahead coherence with every VRAM write (dm_stale, pb_whit, pb_stale) and the posted write, writes made once and in order, wb_pend_o exact, registered HREADYOUT equal to the same-cycle ready, two-cycle ERROR, outputs from flops",
+  "top": "ahb_vram_fv",
+  "clocking": "single",
+  "files": [
+    "ips:arv_ipdff.v",
+    "rtl:blns_vram_arb.v",
+    "rtl:blns_ahb_vram.v",
+    "ahb_vram_fv.sv"
+  ],
+  "tasks": {
+    "lat1": {
+      "params": {
+        "RD_LAT": 1,
+        "RD_REG_EN": 0
+      },
+      "depth": 16,
+      "cover": true,
+      "comb_free": [
+        "hreadyout",
+        "hresp",
+        "hrdata"
+      ],
+      "timeout": 3600,
+      "note": "read latency 1, 8 words, the window registering the read data"
+    },
+    "lat1_reg1": {
+      "params": {
+        "RD_LAT": 1,
+        "RD_REG_EN": 1
+      },
+      "depth": 16,
+      "cover": true,
+      "comb_free": [
+        "hreadyout",
+        "hresp",
+        "hrdata"
+      ],
+      "timeout": 3600,
+      "note": "read latency 2 (RD_LAT 1 + RD_REG): the arbiter's data register"
+    },
+    "lat2": {
+      "params": {
+        "RD_LAT": 2,
+        "RD_REG_EN": 0
+      },
+      "depth": 16,
+      "cover": true,
+      "comb_free": [
+        "hreadyout",
+        "hresp",
+        "hrdata"
+      ],
+      "timeout": 3600,
+      "note": "read latency 2, the window registering the read data"
+    },
+    "lat2_reg1": {
+      "params": {
+        "RD_LAT": 2,
+        "RD_REG_EN": 1
+      },
+      "depth": 16,
+      "cover": true,
+      "comb_free": [
+        "hreadyout",
+        "hresp",
+        "hrdata"
+      ],
+      "timeout": 3600,
+      "note": "read latency 3 (RD_LAT 2 + RD_REG)"
+    },
+    "lat3": {
+      "params": {
+        "RD_LAT": 3,
+        "RD_REG_EN": 0
+      },
+      "depth": 16,
+      "cover": true,
+      "comb_free": [
+        "hreadyout",
+        "hresp",
+        "hrdata"
+      ],
+      "timeout": 3600,
+      "note": "read latency 3, the window registering the read data (window latency 4)"
+    },
+    "lat3_reg1": {
+      "params": {
+        "RD_LAT": 3,
+        "RD_REG_EN": 1
+      },
+      "depth": 16,
+      "cover": true,
+      "comb_free": [
+        "hreadyout",
+        "hresp",
+        "hrdata"
+      ],
+      "timeout": 3600,
+      "note": "read latency 4 (RD_LAT 3 + RD_REG), the longest"
+    },
+    "lat1_w6": {
+      "params": {
+        "RD_LAT": 1,
+        "RD_REG_EN": 0,
+        "WORDS": 6
+      },
+      "depth": 14,
+      "cover": false,
+      "comb_free": [
+        "hreadyout",
+        "hresp",
+        "hrdata"
+      ],
+      "timeout": 3600,
+      "note": "6 populated words: the read ahead stops at the end"
+    }
+  },
+  "mutations": [
+    {
+      "name": "dm_stale_ignored",
+      "task": "lat2_reg1",
+      "file": "rtl:blns_ahb_vram.v",
+      "from": "wire                    dm_stale_nxt = ~rd_gnt & rd_wait & (dm_stale | dm_whit);",
+      "to": "wire                    dm_stale_nxt = 1'b0;",
+      "expect": [
+        "a_coherent"
+      ]
+    },
+    {
+      "name": "dm_whit_ignored",
+      "task": "lat2_reg1",
+      "file": "rtl:blns_ahb_vram.v",
+      "from": "wire                    dm_whit    =  mwr_i & (mwaddr_i == dph_addr);",
+      "to": "wire                    dm_whit    =  1'b0;",
+      "expect": [
+        "a_coherent"
+      ]
+    },
+    {
+      "name": "pb_whit_gpu_ignored",
+      "task": "lat1",
+      "file": "rtl:blns_ahb_vram.v",
+      "from": "wire                    pb_whit    = (mwr_i  & (mwaddr_i == pb_addr)) |",
+      "to": "wire                    pb_whit    = 1'b0 |",
+      "expect": [
+        "a_coherent"
+      ]
+    },
+    {
+      "name": "pb_whit_own_ignored",
+      "task": "lat1",
+      "file": "rtl:blns_ahb_vram.v",
+      "from": "                                     (own_wr & (dph_addr == pb_addr));",
+      "to": "                                     1'b0;",
+      "expect": [
+        "a_coherent"
+      ]
+    },
+    {
+      "name": "pb_stale_ignored",
+      "task": "lat2_reg1",
+      "file": "rtl:blns_ahb_vram.v",
+      "from": "wire                    pb_wait    =  rd_xfer & ~rd_wait & ~pb_v & pb_fly & ~pb_stale & pb_match & ~rd_ret;  // its read ahead returns",
+      "to": "wire                    pb_wait    =  rd_xfer & ~rd_wait & ~pb_v & pb_fly & pb_match & ~rd_ret;  // its read ahead returns",
+      "expect": [
+        "a_coherent"
+      ]
+    },
+    {
+      "name": "ret_ok_ignores_write",
+      "task": "lat1",
+      "file": "rtl:blns_ahb_vram.v",
+      "from": "wire                    pb_ret_ok  =  pb_ret & ~pb_stale & ~pb_whit;",
+      "to": "wire                    pb_ret_ok  =  pb_ret & ~pb_stale;",
+      "expect": [
+        "a_coherent"
+      ]
+    },
+    {
+      "name": "own_wr_at_grant",
+      "task": "lat1",
+      "file": "rtl:blns_ahb_vram.v",
+      "from": "wire                    own_wr     =  wr_acc & (|dph_be);",
+      "to": "wire                    own_wr     =  wr_acc & (|dph_be) & vgnt_i;",
+      "expect": [
+        "a_coherent"
+      ]
+    },
+    {
+      "name": "drain_taken_as_read",
+      "task": "lat1",
+      "file": "rtl:blns_ahb_vram.v",
+      "from": "wire                    rd_gnt     =  vgnt_i & ~vwe_o;",
+      "to": "wire                    rd_gnt     =  vgnt_i & ~dph_write;",
+      "expect": [
+        "a_progress",
+        "a_hready",
+        "a_coherent"
+      ]
+    },
+    {
+      "name": "post_not_kept",
+      "task": "lat1",
+      "file": "rtl:blns_ahb_vram.v",
+      "from": "wire                    wb_v_nxt   = (wb_v | wr_acc) & ~vgnt_i;",
+      "to": "wire                    wb_v_nxt   =  wb_v & ~vgnt_i;",
+      "expect": [
+        "a_wr_room",
+        "a_wb_pend",
+        "a_coherent",
+        "a_wr_now"
+      ]
+    },
+    {
+      "name": "post_overwritten",
+      "task": "lat1",
+      "file": "rtl:blns_ahb_vram.v",
+      "from": "wire                    wr_acc     =  wr_xfer & ~wb_v;                         // a write completes",
+      "to": "wire                    wr_acc     =  wr_xfer;                                 // a write completes",
+      "expect": [
+        "a_wr_room",
+        "a_hready",
+        "a_wr_post"
+      ]
+    },
+    {
+      "name": "ready_write_ignores_post",
+      "task": "lat1",
+      "file": "rtl:blns_ahb_vram.v",
+      "from": "wire                    done_nxt       = dph_write_nxt ? ~wb_v_nxt : rd_cmp_nxt;",
+      "to": "wire                    done_nxt       = dph_write_nxt ? 1'b1 : rd_cmp_nxt;",
+      "expect": [
+        "a_hready",
+        "a_wr_room"
+      ]
+    },
+    {
+      "name": "ready_ret_late",
+      "task": "lat2_reg1",
+      "file": "rtl:blns_ahb_vram.v",
+      "from": "(rd_wait_nxt & vrvalid_nxt_i));",
+      "to": "(rd_wait_nxt & vrvalid_i));",
+      "expect": [
+        "a_hready",
+        "a_coherent"
+      ]
+    },
+    {
+      "name": "ready_wait_late",
+      "task": "lat1_reg1",
+      "file": "rtl:blns_ahb_vram.v",
+      "from": "(pb_hit_nxt | (pb_wait_nxt & wp_vrvalid_nxt_i)",
+      "to": "(pb_hit_nxt | (pb_wait_nxt & wp_vrvalid_i)",
+      "expect": [
+        "a_hready",
+        "a_coherent"
+      ]
+    },
+    {
+      "name": "ready_land_skipped",
+      "task": "lat1",
+      "file": "rtl:blns_ahb_vram.v",
+      "from": "wire                    rd_cmp_nxt     = RET_REG ? (pb_hit_nxt | rd_ret_nxt) :",
+      "to": "wire                    rd_cmp_nxt     = RET_REG ? pb_hit_nxt :",
+      "expect": [
+        "a_hready",
+        "a_progress"
+      ]
+    },
+    {
+      "name": "hrdata_sel_late",
+      "task": "lat1_reg1",
+      "file": "rtl:blns_ahb_vram.v",
+      "from": "assign          hrdata_o = hr_pb ? pb_data : vrdata_i;",
+      "to": "assign          hrdata_o = vrdata_i;",
+      "expect": [
+        "a_coherent"
+      ]
+    },
+    {
+      "name": "err_one_cycle",
+      "task": "lat1",
+      "file": "rtl:blns_ahb_vram.v",
+      "from": "wire                    hready_nxt     = error_resp_nxt ? error_resp_done_nxt : ~(xfer_nxt & ~done_nxt);",
+      "to": "wire                    hready_nxt     = error_resp_nxt ? 1'b1 : ~(xfer_nxt & ~done_nxt);",
+      "expect": [
+        "a_hready",
+        "a_err2"
+      ]
+    },
+    {
+      "name": "wb_pend_nxt_late",
+      "task": "lat1",
+      "file": "rtl:blns_ahb_vram.v",
+      "from": "assign                  wb_pend_nxt_o =  wb_v_nxt;",
+      "to": "assign                  wb_pend_nxt_o =  wb_v;",
+      "expect": [
+        "a_wb_nxt"
+      ]
+    },
+    {
+      "name": "drain_not_a_write",
+      "task": "lat1",
+      "file": "rtl:blns_ahb_vram.v",
+      "from": "assign                  vwe_o      =  wb_v | dph_write;",
+      "to": "assign                  vwe_o      =  dph_write;",
+      "expect": [
+        "a_wr_post",
+        "a_coherent"
+      ]
+    },
+    {
+      "name": "hready_comb",
+      "task": "lat1",
+      "file": "rtl:blns_ahb_vram.v",
+      "from": "assign                  hreadyout_o =  hready_q;",
+      "to": "assign                  hreadyout_o =  hready_q | (vgnt_i & dph_write);",
+      "expect": [
+        "comb_free"
+      ]
+    },
+    {
+      "name": "hrdata_comb",
+      "task": "lat1",
+      "file": "rtl:blns_ahb_vram.v",
+      "from": "        assign          hrdata_o = pb_data;",
+      "to": "        assign          hrdata_o = rd_ret ? pb_data : vrdata_i;",
+      "expect": [
+        "comb_free"
+      ]
+    },
+    {
+      "name": "direct_write_stale_data",
+      "task": "lat1",
+      "file": "rtl:blns_ahb_vram.v",
+      "from": "assign                  vwdata_o   =  wb_v ? wb_data : hwdata_i;",
+      "to": "assign                  vwdata_o   =  wb_data;",
+      "expect": [
+        "a_wr_now"
+      ]
+    },
+    {
+      "name": "hresp_one_cycle",
+      "task": "lat1",
+      "file": "rtl:blns_ahb_vram.v",
+      "from": "assign                  hresp_o     =  error_resp;",
+      "to": "assign                  hresp_o     =  error_resp & ~error_resp_done;",
+      "expect": [
+        "a_resp"
+      ]
+    },
+    {
+      "name": "hready_reset_low",
+      "task": "lat1",
+      "file": "rtl:blns_ahb_vram.v",
+      "from": "arv_ipdff #(.WIDTH(1), .RST_VAL(1'b1), .ARST_EN(ASYNC_RST_EN)) u_hready (",
+      "to": "arv_ipdff #(.WIDTH(1), .RST_VAL(1'b0), .ARST_EN(ASYNC_RST_EN)) u_hready (",
+      "expect": [
+        "a_idle",
+        "a_hready"
+      ]
+    }
+  ],
+  "probes": {
+    "p_pb_hit": "u_win.pb_hit",
+    "p_wait_done": "u_win.wait_done",
+    "p_dm_ret": "u_win.dm_ret",
+    "p_err_done": "u_win.error_resp_done",
+    "p_rd_cmp": "u_win.rd_cmp"
+  }
+}

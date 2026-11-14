@@ -1,0 +1,78 @@
+#!/bin/bash
+#----------------------------------------------------------------------------
+#          _    _           Family:    aRVern Graphic Controller
+#         / \__/ \          Module:    run_all
+#        /   /\   \         --------------------------------------------
+#    ===/   /=========      Copyright: (c) 2026, aRVern-dev
+#      /   / RV \   \       Contact:   arvernsilicon@gmail.com
+#     /___/______\___\      GitHub:    https://github.com/Arvern-Silicon
+#
+# SPDX-License-Identifier: BSD-3-Clause
+# Full license text is available in the LICENSE file at the repository root.
+#----------------------------------------------------------------------------
+# File Name          : run_all
+# Module Description : belenos regression (Icarus; configs and tests from
+#                      bin/test_config.py: run_config.json, rtl_configs.py,
+#                      sim_configs.py).
+#   ./run_all [-fast] [-j N]           T1: every enabled test of the default
+#                                      build and of the shipped Tang HDMI build,
+#                                      the blend / triangle tests in ultra
+#   ./run_all -tier T0|T1|T2|T3 [-j N] T0 smoke_* in every config, T1 = -fast,
+#                                      T2 personas + deployed builds, T3 every
+#                                      config (= -rtl_sweep)
+#   ./run_all -deployed [-j N]         the deployed board builds only
+#   ./run_all -rtl_sweep [-j N]        every config: the shared configs of
+#             [--sweep-mode M]         rtl_configs.py with every test whose
+#                                      `requires` holds, then the sim_* configs
+#                                      with their own lists; M = all (default),
+#                                      personas, shared, sim, deployed,
+#                                      release, smoke or fast
+#   ./run_all -rtl_config N|label [-j N]  one config (-list_configs numbering)
+#   ./run_all -cov [--sweep-mode M]    Verilator line/branch/toggle coverage
+#             [-j N]                   over the same pairs (bin/runcov; -j sets
+#                                      COV_JOBS, default the CPU count)
+#   ./run_all ... -sim verilator       the regression under Verilator, random
+#                                      initial values (Icarus by default)
+#   ./run_all ... -seed S              master seed of the per-run seeds
+#   ./run_all -list_configs | -list
+# Logs: log_sweep/<config>/<test>.log and log_sweep/summary.log, log_sweep
+# being a link to the newest run's log_runs/<run>/ (each invocation has its own
+# logs and work directory, so runs can go in one checkout at once). -sweep is
+# an alias of -rtl_sweep.
+#----------------------------------------------------------------------------
+
+TC=../bin/test_config.py
+mode=fast; sel=""; sweep_mode=all; jobs=1; jobs_set=0; extra=()
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        -fast)              mode=fast; shift ;;
+        -rtl_sweep|-sweep)  mode=sweep; shift ;;
+        -rtl_config)        mode=config; sel="$2"; shift 2 ;;
+        --sweep-mode)       sweep_mode="$2"; shift 2 ;;
+        -j)                 jobs="$2"; jobs_set=1; shift 2 ;;
+        -sim)               extra+=(--sim "$2"); shift 2 ;;
+        -seed)              extra+=(--seed "$2"); shift 2 ;;
+        -cov)               mode=cov; shift ;;
+        -deployed)          mode=sweep; sweep_mode=deployed; shift ;;
+        -tier)              mode=sweep
+                            case "$2" in
+                                T0) sweep_mode=smoke ;;
+                                T1) sweep_mode=fast ;;
+                                T2) sweep_mode=release ;;
+                                T3) sweep_mode=all ;;
+                                *)  echo "ERROR: -tier T0|T1|T2|T3"; exit 1 ;;
+                            esac
+                            shift 2 ;;
+        -list)              exec python3 $TC --list-tests ;;
+        -list_configs)      exec python3 $TC --list-configs ;;
+        *) echo "ERROR: unknown option $1 (see the header of run_all)"; exit 1 ;;
+    esac
+done
+
+[ $jobs_set -eq 1 ] && export COV_JOBS="$jobs"
+case $mode in
+    fast)   exec ../bin/run_sweep.py --sweep-mode fast -j "$jobs" "${extra[@]}" ;;
+    config) exec ../bin/run_sweep.py --rtl-config "$sel" -j "$jobs" "${extra[@]}" ;;
+    sweep)  exec ../bin/run_sweep.py --sweep-mode "$sweep_mode" -j "$jobs" "${extra[@]}" ;;
+    cov)    COV_MODE="$sweep_mode" exec ../bin/runcov ;;
+esac

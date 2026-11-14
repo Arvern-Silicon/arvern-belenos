@@ -1,0 +1,171 @@
+#!/bin/bash
+#----------------------------------------------------------------------------
+#          _    _           Family:    aRVern Graphic Controller
+#         / \__/ \          Module:    runcov
+#        /   /\   \         --------------------------------------------
+#    ===/   /=========      Copyright: (c) 2026, aRVern-dev
+#      /   / RV \   \       Contact:   arvernsilicon@gmail.com
+#     /___/______\___\      GitHub:    https://github.com/Arvern-Silicon
+#
+# SPDX-License-Identifier: BSD-3-Clause
+# Full license text is available in the LICENSE file at the repository root.
+#----------------------------------------------------------------------------
+# File Name          : runcov
+# Module Description : Verilator line/branch/toggle coverage sweep over the
+#                      belenos suite.
+#----------------------------------------------------------------------------
+# Invoked by `run_all -cov` and `run <test> -cov`. Builds and runs every
+# (configuration, test) pair of a sweep mode of bin/test_config.py (COV_MODE:
+# all by default, personas, shared, sim) -- the pairs run_all -rtl_sweep runs --
+# under Verilator (the regression itself uses Icarus, which has no coverage
+# support), merges the per-run databases and reports per-file coverage.
+#
+# One build per run: the stimulus file is `include`d into the bench and each
+# configuration is a set of bench defines, so every pair is a distinct
+# elaboration, in its own work directory (cov/w_<pair>/). Artefacts land in
+# run/cov/ (COV_DIR=<dir> for another directory) and are not tracked; a lock
+# refuses a second sweep, or a second run of the same pair, into one directory.
+#   runcov                    the whole sweep (COV_MODE, default all; COV_JOBS
+#                             in parallel, default the CPU count)
+#   runcov <cfg:test> ...     just those pairs, into run/cov/single/<cfg_test>/
+# Per pair: cov/dats/cov_<pair>.dat, the COVERAGE HIT: lines of the bench's
+# functional bins in cov/bins/<pair>.log, and the log of a pair that did not
+# pass in cov/fail_logs/<pair>.log. A pair fails on a FAILED banner, a timeout
+# or an ERROR: line in its log.
+#----------------------------------------------------------------------------
+set -u
+# A compiler cache shares the objects that do not change between builds,
+# not the precompiled header (bin/objcache_nopch)
+if [ -z "${OBJCACHE+x}" ] && command -v ccache >/dev/null 2>&1; then
+    OBJCACHE="$(cd "$(dirname "$0")" && pwd)/objcache_nopch"
+fi
+export OBJCACHE="${OBJCACHE:-}"
+
+RUN_DIR="$(cd "$(dirname "$0")/../run" && pwd)"
+BIN="$(cd "$(dirname "$0")" && pwd)"
+IP="$(cd "$BIN/../../.." && pwd)"                       # repository root
+IPS="$(cd "$IP/../arvern-ips" && pwd)"
+BENCH="$IP/bench/verilog"
+RTL="$IP/rtl/verilog"
+SRC="$IP/sim/rtl_sim/src"
+
+# Worker: build and run ONE configuration:test pair in its own directory.
+#   runcov --one <cfg:test> <cov_dir>
+if [ "${1:-}" = "--one" ]; then
+    cfg="${2%%:*}"; t="${2#*:}"; COV="$3"
+    DEFS=$( { BLNS_DEFINES= python3 "$BIN/test_config.py" --defines "$cfg"; python3 "$BIN/test_config.py" --test-defines "$t"; } \
+           | tr ' ' '\n' | grep -v '^$' | sed 's/^/+define+/' | tr '\n' ' ')
+    tag="${cfg}__${t}"
+    W="$COV/w_$tag"; rm -rf "$W"; mkdir -p "$W"; cd "$W" || exit 1
+    ln -sf "$SRC/$t.v" stimulus.v
+    # Instrument the DUT only (the Belenos RTL and the arv_primitives cells it
+    # instantiates); COV_SCOPE=all instruments the whole bench.
+    SCOPE=""
+    if [ "${COV_SCOPE:-dut}" = "dut" ]; then
+        { echo "+incdir+$BENCH"; echo "+incdir+$W"; cat "$COV/files.txt"; } > scope_list.f
+        python3 "$BIN/cov_scope.py" cov_scope.vlt scope_list.f "$RTL" "$IPS/arv_primitives/rtl/verilog"
+        SCOPE="cov_scope.vlt"
+    fi
+    # --x-initial unique + +verilator+rand+reset+1 start every flop at 1, so a reset
+    # net that only ever rises still gives the asynchronous resets a falling edge.
+    # cov_public.vlt makes the internal DUT nets the tests read public (see there).
+    # Corrected toggle macro for vectors wider than 64 bits (see cov_vlfix.py).
+    python3 "$BIN/cov_vlfix.py" "obj_$tag"
+    if ! verilator --binary --timing --coverage-line --coverage-toggle --coverage-max-width 65536 --x-initial unique \
+            -Wno-fatal -Wno-TIMESCALEMOD -Wno-LATCH -Wno-WIDTHEXPAND --quiet-exit \
+            -MAKEFLAGS OPT_FAST=-O0 -MAKEFLAGS OPT_SLOW=-O0 -MAKEFLAGS OPT_GLOBAL=-O0 \
+            ${OBJCACHE:+-MAKEFLAGS OBJCACHE=$OBJCACHE} \
+            +define+SEED=1 +define+NODUMP +define+NOTRACE +define+ARV_COV_RESET_ZERO $DEFS \
+            +incdir+"$W" +incdir+"$BENCH" +incdir+"$RTL" \
+            $SCOPE "$BIN/cov_public.vlt" -f "$COV/files.txt" \
+            --top-module tb_belenos --Mdir "obj_$tag" -o "sim_$tag" > build.log 2>&1; then
+        { echo "=== $tag"; cat build.log; } >> "$COV/build.log"
+        printf '  %-44s BUILD-FAIL\n' "$tag"; exit 0
+    fi
+    rm -f coverage.dat
+    # An ERROR: line fails the pair whatever its banner says (as run_sweep.py)
+    timeout "${COV_TIMEOUT:-900}" "./obj_$tag/sim_$tag" +verilator+rand+reset+${COV_RAND_RESET:-1} > sim.log 2>&1
+    if grep -q "^ERROR:" sim.log || grep -q "SIMULATION FAILED" sim.log; then
+        res=FAIL/TIMEOUT
+    elif grep -q "SIMULATION PASSED" sim.log; then
+        res=PASS
+    elif grep -q "SIMULATION SKIPPED" sim.log; then
+        res=SKIP
+    else
+        res=FAIL/TIMEOUT
+    fi
+    grep "COVERAGE HIT:" sim.log > "$COV/bins/$tag.log"
+    if [ "$res" = FAIL/TIMEOUT ]; then
+        { echo "=== $tag"; grep -E "ERROR|FATAL|TIMEOUT" sim.log | head -20; tail -5 sim.log; } >> "$COV/fail.log"
+        cp sim.log "$COV/fail_logs/$tag.log"
+    fi
+    printf '  %-44s %s\n' "$tag" "$res"
+    [ -f coverage.dat ] && mv coverage.dat "$COV/dats/cov_$tag.dat"
+    cd "$COV" && rm -rf "$W"
+    exit 0
+fi
+
+COV_BASE="${COV_DIR:-$RUN_DIR/cov}"
+if [ "$#" -gt 0 ]; then
+    SINGLE=1
+    COV="$COV_BASE/single/$(printf '%s' "$*" | tr -c 'A-Za-z0-9_' '_')"
+else
+    SINGLE=0
+    COV="$COV_BASE"
+fi
+
+if ! command -v verilator >/dev/null 2>&1; then
+    echo "ERROR: verilator not found -- coverage needs Verilator (>= 5.0, for --binary --timing)."
+    exit 1
+fi
+
+if [ -e "$COV/.lock" ] && kill -0 "$(cat "$COV/.lock" 2>/dev/null)" 2>/dev/null; then
+    echo "ERROR: a coverage run into ${COV#$RUN_DIR/} is already going (pid $(cat "$COV/.lock")); wait, kill it, or set COV_DIR."
+    exit 1
+fi
+# Keep the previous sweep: COV_ARCHIVE=0 skips, COV_ARCHIVE_NAME=<label> names it.
+if [ $SINGLE -eq 0 ] && [ "${COV_ARCHIVE:-1}" != "0" ] && [ -d "$COV/dats" ]; then
+    ADEST="$RUN_DIR/cov_archive/$(date +%Y%m%d-%H%M%S)${COV_ARCHIVE_NAME:+_$COV_ARCHIVE_NAME}"
+    mkdir -p "$ADEST"
+    cp -R "$COV/dats" "$ADEST/" 2>/dev/null
+    cp "$COV/coverage.html" "$ADEST/" 2>/dev/null
+    echo "  previous coverage archived -> ${ADEST#$RUN_DIR/}"
+fi
+if [ $SINGLE -eq 1 ]; then
+    rm -rf "$COV"
+else
+    rm -rf "$COV/dats" "$COV/bins" "$COV/fail_logs" "$COV/coverage.html" "$COV/files.txt" "$COV/build.log" \
+           "$COV/fail.log" "$COV/results.txt" "$COV"/w_*
+fi
+mkdir -p "$COV/dats" "$COV/bins" "$COV/fail_logs"
+echo $$ > "$COV/.lock"
+trap 'rm -f "$COV/.lock"' EXIT
+cd "$COV" || exit 1
+
+# Bench + RTL file list, flattened from the bench submit file (absolute paths).
+python3 "$BIN/flatten_filelist.py" "$BENCH/submit.f" "$COV/submit_flat.f" >/dev/null
+grep -vE '^\s*//|^\s*$|^\+' "$COV/submit_flat.f" > files.txt
+
+if [ "$#" -gt 0 ]; then
+    PAIRS="$*"
+else
+    PAIRS=$(python3 "$BIN/test_config.py" --pairs "${COV_MODE:-all}") || exit 1
+fi
+
+JOBS="${COV_JOBS:-$(sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo 4)}"
+echo "  $(echo $PAIRS | wc -w | tr -d ' ') runs, $JOBS in parallel"
+printf '%s\n' $PAIRS | xargs -P "$JOBS" -I{} "$BIN/runcov" --one {} "$COV" | tee results.txt
+pass=$(grep -c ' PASS$' results.txt); skip=$(grep -c ' SKIP$' results.txt); fail=$(grep -c 'FAIL/TIMEOUT$' results.txt); nobuild=$(grep -c 'BUILD-FAIL$' results.txt)
+echo
+echo "  ran: $pass passed, $skip skipped (test not applicable), $fail failed, $nobuild build-fail"
+echo
+python3 "$BIN/cov_report.py" "$COV/dats"
+rc=$?
+# The bench's functional bins over the pairs of a sweep (report only; the gate
+# with teeth is run_all -rtl_sweep)
+[ $SINGLE -eq 0 ] && python3 -c "import sys; sys.path.insert(0, sys.argv[1]); from pathlib import Path; import coverage; coverage.report(Path(sys.argv[2]), single_config=True)" "$BIN" "$COV/bins"
+echo
+python3 "$BIN/cov_html.py" "$COV/dats" -o "$COV/coverage.html"
+echo "  report: $COV/coverage.html"
+[ "$fail" -ne 0 ] || [ "$nobuild" -ne 0 ] && rc=1
+exit $rc

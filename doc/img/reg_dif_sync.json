@@ -1,0 +1,7 @@
+{reg: [
+  {bits: 10, name: 'SCANLINE'},
+  {bits: 5},
+  {bits: 1, name: 'SCAN_SYNC_EN', rotate: -90},
+  {bits: 1, name: 'TE_SYNC_EN', rotate: -90},
+  {bits: 15}
+], config: {bits: 32, lanes: 1, hspace: 900, vspace: 170}}

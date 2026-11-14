@@ -1,0 +1,14 @@
+{signal: [
+  {name: 'hclk',        wave: 'p........'},
+  {name: 'r_hsel·htrans', wave: '01.0.10..', data: []},
+  {name: 'r_haddr',     wave: 'x34x.5x..', data: ['CTRL (W)','CTRL (R)','0x000 byte']},
+  {name: 'r_hwrite',    wave: 'x10x.0x..'},
+  {name: 'r_hwdata',    wave: 'x.3x.....', data: ['0x13']},
+  {},
+  {name: 'r_hreadyout', wave: '1.....01.'},
+  {name: 'r_hresp',     wave: '0.....1.0'},
+  {name: 'r_hrdata',    wave: 'x..4x....', data: ['0x13']}
+],
+  head: {text: 'Register port: zero wait states; a non-word access gets the two-cycle ERROR'},
+  config: {hscale: 2}
+}

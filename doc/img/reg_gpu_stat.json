@@ -1,0 +1,15 @@
+{reg: [
+  {bits: 8, name: 'FREE'},
+  {bits: 8, name: 'USED'},
+  {bits: 1, name: 'EMPTY', rotate: -90},
+  {bits: 1, name: 'FULL', rotate: -90},
+  {bits: 1, name: 'WAIT', rotate: -90},
+  {bits: 1},
+  {bits: 1, name: 'PRIM_BUSY', rotate: -90},
+  {bits: 1, name: 'BUSY', rotate: -90},
+  {bits: 1, name: 'ERR', rotate: -90},
+  {bits: 1, name: 'HELD', rotate: -90},
+  {bits: 1, name: 'LIST', rotate: -90},
+  {bits: 3, name: 'ERR_CAUSE'},
+  {bits: 4, name: 'ERR_OPCODE'}
+], config: {bits: 32, lanes: 1, hspace: 900, vspace: 170}}

@@ -1,0 +1,7 @@
+{reg: [
+  {bits: 24, name: 'TAG'},
+  {bits: 1, name: 'IRQ', rotate: -90},
+  {bits: 1, name: 'AUTO', rotate: -90},
+  {bits: 2},
+  {bits: 4, name: '0xF', attr: 'FENCE'}
+], config: {bits: 32, lanes: 1, hspace: 900, vspace: 120}}

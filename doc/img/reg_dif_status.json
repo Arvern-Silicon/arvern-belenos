@@ -1,0 +1,12 @@
+{reg: [
+  {bits: 1, name: 'BUSY', rotate: -90},
+  {bits: 1, name: 'CMD_PENDING', rotate: -90},
+  {bits: 1, name: 'PARAM_FULL', rotate: -90},
+  {bits: 1, name: 'REFRESH_BUSY', rotate: -90},
+  {bits: 1, name: 'WAIT_SYNC', rotate: -90},
+  {bits: 1, name: 'DFILL_BUSY', rotate: -90},
+  {bits: 1, name: 'DFILL_PENDING', rotate: -90},
+  {bits: 1, name: 'PARAM_OVFL', rotate: -90},
+  {bits: 5, name: 'PARAM_LEVEL'},
+  {bits: 19}
+], config: {bits: 32, lanes: 1, hspace: 900, vspace: 170}}

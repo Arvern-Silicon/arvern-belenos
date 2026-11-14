@@ -1,0 +1,102 @@
+{
+  "description": "blns_gpu_px_fw without blending: an ERR_CAUSE 5 raised by F (a read or an immediate index past VRAM_WORDS) leaves no older pixel behind",
+  "top": "gpu_px_bound_fv",
+  "clocking": "single",
+  "files": [
+    "ips:arv_ipdff.v",
+    "rtl:blns_gpu_px_fw.v",
+    "gpu_px_bound_fv.sv"
+  ],
+  "tasks": {
+    "lat1": {
+      "params": {
+        "RD_LAT": 1
+      },
+      "depth": 20,
+      "induction": false,
+      "cover": true,
+      "cover_depth": 20,
+      "probes": {
+        "p_w_slot": "u_dut.w_slot",
+        "p_f_slot": "u_dut.f_slot",
+        "p_t2_v": "u_dut.t2_v",
+        "p_w_take": "u_dut.w_take",
+        "p_f_oob": "u_dut.f_oob",
+        "p_wb_sel": "u_dut.wb_sel",
+        "p_i_oob": "u_dut.i_oob",
+        "p_l_busy": "u_dut.l_busy",
+        "p_w_oob": "u_dut.w_oob",
+        "p_wb_oob": "u_dut.wb_oob"
+      },
+      "note": "one-cycle VRAM read"
+    },
+    "lat2": {
+      "params": {
+        "RD_LAT": 2
+      },
+      "depth": 20,
+      "induction": false,
+      "cover": true,
+      "cover_depth": 20,
+      "probes": {
+        "p_w_slot": "u_dut.w_slot",
+        "p_f_slot": "u_dut.f_slot",
+        "p_t2_v": "u_dut.t2_v",
+        "p_w_take": "u_dut.w_take",
+        "p_f_oob": "u_dut.f_oob",
+        "p_wb_sel": "u_dut.wb_sel",
+        "p_i_oob": "u_dut.i_oob",
+        "p_l_busy": "u_dut.l_busy",
+        "p_w_oob": "u_dut.w_oob",
+        "p_wb_oob": "u_dut.wb_oob"
+      },
+      "note": "two-cycle macro (second read-ahead entries)"
+    },
+    "lat3": {
+      "params": {
+        "RD_LAT": 3
+      },
+      "depth": 20,
+      "induction": false,
+      "cover": true,
+      "cover_depth": 20,
+      "probes": {
+        "p_w_slot": "u_dut.w_slot",
+        "p_f_slot": "u_dut.f_slot",
+        "p_t2_v": "u_dut.t2_v",
+        "p_w_take": "u_dut.w_take",
+        "p_f_oob": "u_dut.f_oob",
+        "p_wb_sel": "u_dut.wb_sel",
+        "p_i_oob": "u_dut.i_oob",
+        "p_l_busy": "u_dut.l_busy",
+        "p_w_oob": "u_dut.w_oob",
+        "p_wb_oob": "u_dut.wb_oob"
+      },
+      "note": "three-cycle macro"
+    }
+  },
+  "mutations": [
+    {
+      "name": "f_bound_at_once",
+      "task": "lat1",
+      "file": "rtl:blns_gpu_px_fw.v",
+      "from": "wire        f_bnd_wait  = ~w_slot & f_slot & f_oob & (t2_v | l_busy);",
+      "to": "wire        f_bnd_wait  = 1'b0;",
+      "expect": [
+        "a_no_drop"
+      ],
+      "depth": 20
+    },
+    {
+      "name": "imm_bound_at_once",
+      "task": "lat1",
+      "file": "rtl:blns_gpu_px_fw.v",
+      "from": "(i_oob & ~t2_v & ~l_busy)",
+      "to": "i_oob",
+      "expect": [
+        "a_no_drop"
+      ],
+      "depth": 20
+    }
+  ]
+}

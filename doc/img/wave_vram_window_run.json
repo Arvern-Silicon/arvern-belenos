@@ -1,0 +1,15 @@
+{signal: [
+  {name: 'hclk',          wave: 'p........'},
+  {name: 'v_hsel·htrans', wave: '1....0...'},
+  {name: 'v_haddr',       wave: '34.5.x...', data: ['4W', '4W+4', '4W+8']},
+  {name: 'v_hreadyout',   wave: '1.0101...'},
+  {name: 'v_hrdata',      wave: 'x3x4x5x..', data: ['D(W)', 'D(W+1)', 'D(W+2)']},
+  {},
+  {name: 'vram_cen_o',    wave: '1010101..'},
+  {name: 'vram_addr_o',   wave: 'x3x4x5x..', data: ['W+1', 'W+2', 'W+3']},
+  {name: 'vram_dout_i',   wave: 'x.3x4x5x.', data: ['D(W+1)', 'D(W+2)', 'D(W+3)']}
+],
+  head: {text: 'VRAM window: back-to-back word reads in address order (VRAM_RD_LAT 1): one wait state each'},
+  foot: {text: 'each word is read ahead as the read before it completes and returns registered; with a free cycle between the loads, no wait state'},
+  config: {hscale: 2}
+}

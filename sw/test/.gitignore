@@ -1,0 +1,10 @@
+# make -C sw/test outputs
+test_driver
+test_driver_all
+test_driver_essential
+check_mix5
+check_bilinear
+test_lvgl_*
+obj_lvgl/
+*.dSYM/
+lvgl_src/

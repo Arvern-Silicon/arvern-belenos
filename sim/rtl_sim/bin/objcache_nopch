@@ -1,0 +1,29 @@
+#!/bin/sh
+#----------------------------------------------------------------------------
+#          _    _           Family:    aRVern Graphic Controller
+#         / \__/ \          Module:    objcache_nopch
+#        /   /\   \         --------------------------------------------
+#    ===/   /=========      Copyright: (c) 2026, aRVern-dev
+#      /   / RV \   \       Contact:   arvernsilicon@gmail.com
+#     /___/______\___\      GitHub:    https://github.com/Arvern-Silicon
+#
+# SPDX-License-Identifier: BSD-3-Clause
+# Full license text is available in the LICENSE file at the repository root.
+#----------------------------------------------------------------------------
+# File Name          : objcache_nopch
+# Module Description : The compiler cache of the Verilator builds (OBJCACHE of
+#                      bin/runcov and bin/run_sweep.py --sim verilator):
+#                      ccache, except for the precompiled header and the
+#                      compiles that read it. A cached precompiled header
+#                      names the header of the build that made it (an
+#                      absolute path in another pair's obj_ directory), so a
+#                      second build served from the cache fails ("malformed
+#                      or corrupted precompiled file") once that directory is
+#                      gone. Those compiles depend on the pair anyway.
+#----------------------------------------------------------------------------
+for a in "$@"; do
+    case "$a" in
+        c++-header|-include-pch) exec "$@" ;;
+    esac
+done
+exec ccache "$@"

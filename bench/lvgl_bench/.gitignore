@@ -1,0 +1,3 @@
+# LVGL benchmark bench: builds, models, logs and the fetched LVGL
+run/
+lvgl_src/

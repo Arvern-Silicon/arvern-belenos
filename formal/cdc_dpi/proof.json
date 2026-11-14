@@ -1,0 +1,526 @@
+{
+  "description": "DPI clock-domain crossings: quasi-static data stable when sampled, toggle handshakes without loss or duplication (multi-clock, formal synchroniser model)",
+  "top": "cdc_dpi_fv",
+  "clocking": "multi",
+  "files": [
+    "ips:arv_ipdff.v",
+    "ips:arv_ipdff_sinit.v",
+    "common:arv_synchronizer_fv.v",
+    "rtl:blns_dpi_regs.v",
+    "rtl:blns_dpi_bdi.v",
+    "rtl:blns_dpi_cdc.v",
+    "rtl:blns_dpi_scan.v",
+    "rtl:blns_tmds.v",
+    "rtl:blns_hdmi.v",
+    "rtl:blns_hdmi_i2s.v",
+    "rtl:blns_dpi.v",
+    "cdc_dpi_fv.sv"
+  ],
+  "tasks": {
+    "dpi": {
+      "params": {
+        "SCALER": 0,
+        "HDMI": 0
+      },
+      "depth": 24,
+      "cover": true,
+      "cover_depth": 36,
+      "probes": {
+        "p_staged": "u_dut.staged",
+        "p_req": "u_dut.req",
+        "p_pix_en": "u_dut.pix_en",
+        "p_apply": "u_dut.apply_p",
+        "p_ack_p": "u_dut.ack_p",
+        "p_req_p": "u_dut.req_p",
+        "p_sz_req": "u_dut.sz_req",
+        "p_sz_w": "u_dut.sz_w",
+        "p_sz_h": "u_dut.sz_h",
+        "p_sz_req_p": "u_dut.sz_req_p",
+        "p_sz_ack_p": "u_dut.sz_ack_p",
+        "p_fill": "u_dut.fill",
+        "p_fill_p": "u_dut.fill_p",
+        "p_rel_p": "u_dut.rel_p",
+        "p_tag": "u_dut.tag",
+        "p_cfg_en": "u_dut.u_dpi_regs.cfg_en",
+        "p_run_h": "u_dut.run_h",
+        "p_src_w": "u_dut.u_dpi_scan.src_w",
+        "p_src_h": "u_dut.u_dpi_scan.src_h"
+      },
+      "timeout": 7200,
+      "note": "DPI, two banks: bounded 24 steps, covers to 36 (a stop with UPDATE pending, two full banks, a frame dropped after its image done with the next frame start waiting, an UPDATE taken at a frame start: UPDATE is accepted only once the driver runs)",
+      "slow": true
+    },
+    "hdmi": {
+      "params": {
+        "SCALER": 0,
+        "HDMI": 1
+      },
+      "depth": 14,
+      "cover": false,
+      "probes": {
+        "p_staged": "u_dut.staged",
+        "p_req": "u_dut.req",
+        "p_pix_en": "u_dut.pix_en",
+        "p_apply": "u_dut.apply_p",
+        "p_ack_p": "u_dut.ack_p",
+        "p_req_p": "u_dut.req_p",
+        "p_sz_req": "u_dut.sz_req",
+        "p_sz_w": "u_dut.sz_w",
+        "p_sz_h": "u_dut.sz_h",
+        "p_sz_req_p": "u_dut.sz_req_p",
+        "p_sz_ack_p": "u_dut.sz_ack_p",
+        "p_fill": "u_dut.fill",
+        "p_fill_p": "u_dut.fill_p",
+        "p_rel_p": "u_dut.rel_p",
+        "p_tag": "u_dut.tag",
+        "p_cfg_en": "u_dut.u_dpi_regs.cfg_en",
+        "p_run_h": "u_dut.run_h",
+        "p_hdmi_cfg": "u_dut.hdmi_cfg",
+        "p_hdmi_cfg_p": "u_dut.hdmi_cfg_p",
+        "p_avi_q": "u_dut.g_hdmi_copy.avi_q",
+        "p_src_w": "u_dut.u_dpi_scan.src_w",
+        "p_src_h": "u_dut.u_dpi_scan.src_h",
+        "p_avi_meta": "u_dut.u_dpi_cdc.g_hdmi_sync.u_hdmi_sync.meta_q[1]",
+        "p_aud_cfg": "u_dut.aud_cfg",
+        "p_aud_ctl_p": "u_dut.aud_ctl_p",
+        "p_aud_p_q": "u_dut.u_dpi_cdc.g_aud.g_aud_sync.aud_p_q"
+      },
+      "timeout": 3600,
+      "note": "HDMI with audio: also the AVI fields (around a start too) and DPI_AUD, bounded",
+      "cover_depth": 20
+    },
+    "dpi_nb3": {
+      "params": {
+        "SCALER": 2,
+        "HDMI": 0
+      },
+      "depth": 14,
+      "cover": false,
+      "probes": {
+        "p_staged": "u_dut.staged",
+        "p_req": "u_dut.req",
+        "p_pix_en": "u_dut.pix_en",
+        "p_apply": "u_dut.apply_p",
+        "p_ack_p": "u_dut.ack_p",
+        "p_req_p": "u_dut.req_p",
+        "p_sz_req": "u_dut.sz_req",
+        "p_sz_w": "u_dut.sz_w",
+        "p_sz_h": "u_dut.sz_h",
+        "p_sz_req_p": "u_dut.sz_req_p",
+        "p_sz_ack_p": "u_dut.sz_ack_p",
+        "p_fill": "u_dut.fill",
+        "p_fill_p": "u_dut.fill_p",
+        "p_rel_p": "u_dut.rel_p",
+        "p_tag": "u_dut.tag",
+        "p_cfg_en": "u_dut.u_dpi_regs.cfg_en",
+        "p_run_h": "u_dut.run_h",
+        "p_src_w": "u_dut.u_dpi_scan.src_w",
+        "p_src_h": "u_dut.u_dpi_scan.src_h"
+      },
+      "timeout": 3600,
+      "note": "bilinear scaler, three banks, bounded"
+    },
+    "dpi_quick": {
+      "params": {
+        "SCALER": 0,
+        "HDMI": 0
+      },
+      "depth": 14,
+      "cover": false,
+      "probes": {
+        "p_staged": "u_dut.staged",
+        "p_req": "u_dut.req",
+        "p_pix_en": "u_dut.pix_en",
+        "p_apply": "u_dut.apply_p",
+        "p_ack_p": "u_dut.ack_p",
+        "p_req_p": "u_dut.req_p",
+        "p_sz_req": "u_dut.sz_req",
+        "p_sz_w": "u_dut.sz_w",
+        "p_sz_h": "u_dut.sz_h",
+        "p_sz_req_p": "u_dut.sz_req_p",
+        "p_sz_ack_p": "u_dut.sz_ack_p",
+        "p_fill": "u_dut.fill",
+        "p_fill_p": "u_dut.fill_p",
+        "p_rel_p": "u_dut.rel_p",
+        "p_tag": "u_dut.tag",
+        "p_cfg_en": "u_dut.u_dpi_regs.cfg_en",
+        "p_run_h": "u_dut.run_h",
+        "p_src_w": "u_dut.u_dpi_scan.src_w",
+        "p_src_h": "u_dut.u_dpi_scan.src_h"
+      },
+      "timeout": 1800,
+      "note": "DPI, two banks: bounded 14 steps (the run_all default)",
+      "cover_depth": 16
+    },
+    "hdmi_nosw3": {
+      "params": {
+        "SCALER": 0,
+        "HDMI": 1,
+        "SW3_OFF": 1
+      },
+      "depth": 14,
+      "cover": false,
+      "probes": {
+        "p_staged": "u_dut.staged",
+        "p_req": "u_dut.req",
+        "p_pix_en": "u_dut.pix_en",
+        "p_apply": "u_dut.apply_p",
+        "p_ack_p": "u_dut.ack_p",
+        "p_req_p": "u_dut.req_p",
+        "p_sz_req": "u_dut.sz_req",
+        "p_sz_w": "u_dut.sz_w",
+        "p_sz_h": "u_dut.sz_h",
+        "p_sz_req_p": "u_dut.sz_req_p",
+        "p_sz_ack_p": "u_dut.sz_ack_p",
+        "p_fill": "u_dut.fill",
+        "p_fill_p": "u_dut.fill_p",
+        "p_rel_p": "u_dut.rel_p",
+        "p_tag": "u_dut.tag",
+        "p_cfg_en": "u_dut.u_dpi_regs.cfg_en",
+        "p_run_h": "u_dut.run_h",
+        "p_hdmi_cfg": "u_dut.hdmi_cfg",
+        "p_hdmi_cfg_p": "u_dut.hdmi_cfg_p",
+        "p_avi_q": "u_dut.g_hdmi_copy.avi_q",
+        "p_src_w": "u_dut.u_dpi_scan.src_w",
+        "p_src_h": "u_dut.u_dpi_scan.src_h",
+        "p_avi_meta": "u_dut.u_dpi_cdc.g_hdmi_sync.u_hdmi_sync.meta_q[1]",
+        "p_aud_cfg": "u_dut.aud_cfg",
+        "p_aud_ctl_p": "u_dut.aud_ctl_p",
+        "p_aud_p_q": "u_dut.u_dpi_cdc.g_aud.g_aud_sync.aud_p_q"
+      },
+      "timeout": 3600,
+      "note": "finding CDC-F2 (AVI fields): fails without SW3",
+      "expect_fail": [
+        "a_fld_stable"
+      ]
+    },
+    "hdmi_deep": {
+      "params": {
+        "SCALER": 0,
+        "HDMI": 1
+      },
+      "depth": 24,
+      "cover": true,
+      "probes": {
+        "p_staged": "u_dut.staged",
+        "p_req": "u_dut.req",
+        "p_pix_en": "u_dut.pix_en",
+        "p_apply": "u_dut.apply_p",
+        "p_ack_p": "u_dut.ack_p",
+        "p_req_p": "u_dut.req_p",
+        "p_sz_req": "u_dut.sz_req",
+        "p_sz_w": "u_dut.sz_w",
+        "p_sz_h": "u_dut.sz_h",
+        "p_sz_req_p": "u_dut.sz_req_p",
+        "p_sz_ack_p": "u_dut.sz_ack_p",
+        "p_fill": "u_dut.fill",
+        "p_fill_p": "u_dut.fill_p",
+        "p_rel_p": "u_dut.rel_p",
+        "p_tag": "u_dut.tag",
+        "p_cfg_en": "u_dut.u_dpi_regs.cfg_en",
+        "p_run_h": "u_dut.run_h",
+        "p_hdmi_cfg": "u_dut.hdmi_cfg",
+        "p_hdmi_cfg_p": "u_dut.hdmi_cfg_p",
+        "p_avi_q": "u_dut.g_hdmi_copy.avi_q",
+        "p_src_w": "u_dut.u_dpi_scan.src_w",
+        "p_src_h": "u_dut.u_dpi_scan.src_h",
+        "p_avi_meta": "u_dut.u_dpi_cdc.g_hdmi_sync.u_hdmi_sync.meta_q[1]",
+        "p_aud_cfg": "u_dut.aud_cfg",
+        "p_aud_ctl_p": "u_dut.aud_ctl_p",
+        "p_aud_p_q": "u_dut.u_dpi_cdc.g_aud.g_aud_sync.aud_p_q"
+      },
+      "timeout": 10800,
+      "note": "HDMI with audio: bounded 24 steps, covers to 36 (the generic packet load, an UPDATE taken at a frame start)",
+      "cover_depth": 36,
+      "slow": true
+    },
+    "dpi_prst": {
+      "params": {
+        "SCALER": 0,
+        "HDMI": 0,
+        "PRST_FREE": 1
+      },
+      "depth": 16,
+      "cover": true,
+      "probes": {
+        "p_staged": "u_dut.staged",
+        "p_req": "u_dut.req",
+        "p_pix_en": "u_dut.pix_en",
+        "p_apply": "u_dut.apply_p",
+        "p_ack_p": "u_dut.ack_p",
+        "p_req_p": "u_dut.req_p",
+        "p_sz_req": "u_dut.sz_req",
+        "p_sz_w": "u_dut.sz_w",
+        "p_sz_h": "u_dut.sz_h",
+        "p_sz_req_p": "u_dut.sz_req_p",
+        "p_sz_ack_p": "u_dut.sz_ack_p",
+        "p_fill": "u_dut.fill",
+        "p_fill_p": "u_dut.fill_p",
+        "p_rel_p": "u_dut.rel_p",
+        "p_tag": "u_dut.tag",
+        "p_cfg_en": "u_dut.u_dpi_regs.cfg_en",
+        "p_run_h": "u_dut.run_h",
+        "p_src_w": "u_dut.u_dpi_scan.src_w",
+        "p_src_h": "u_dut.u_dpi_scan.src_h"
+      },
+      "timeout": 1800,
+      "note": "pixel-only resets at any step (X5): the staged set stable at every start, the restart after a pixel reset included (c_prst_start)",
+      "cover_depth": 20
+    },
+    "hdmi_prst": {
+      "params": {
+        "SCALER": 0,
+        "HDMI": 1,
+        "PRST_FREE": 1
+      },
+      "depth": 14,
+      "cover": false,
+      "probes": {
+        "p_staged": "u_dut.staged",
+        "p_req": "u_dut.req",
+        "p_pix_en": "u_dut.pix_en",
+        "p_apply": "u_dut.apply_p",
+        "p_ack_p": "u_dut.ack_p",
+        "p_req_p": "u_dut.req_p",
+        "p_sz_req": "u_dut.sz_req",
+        "p_sz_w": "u_dut.sz_w",
+        "p_sz_h": "u_dut.sz_h",
+        "p_sz_req_p": "u_dut.sz_req_p",
+        "p_sz_ack_p": "u_dut.sz_ack_p",
+        "p_fill": "u_dut.fill",
+        "p_fill_p": "u_dut.fill_p",
+        "p_rel_p": "u_dut.rel_p",
+        "p_tag": "u_dut.tag",
+        "p_cfg_en": "u_dut.u_dpi_regs.cfg_en",
+        "p_run_h": "u_dut.run_h",
+        "p_hdmi_cfg": "u_dut.hdmi_cfg",
+        "p_hdmi_cfg_p": "u_dut.hdmi_cfg_p",
+        "p_avi_q": "u_dut.g_hdmi_copy.avi_q",
+        "p_src_w": "u_dut.u_dpi_scan.src_w",
+        "p_src_h": "u_dut.u_dpi_scan.src_h",
+        "p_avi_meta": "u_dut.u_dpi_cdc.g_hdmi_sync.u_hdmi_sync.meta_q[1]",
+        "p_aud_cfg": "u_dut.aud_cfg",
+        "p_aud_ctl_p": "u_dut.aud_ctl_p",
+        "p_aud_p_q": "u_dut.u_dpi_cdc.g_aud.g_aud_sync.aud_p_q"
+      },
+      "timeout": 3600,
+      "note": "HDMI with audio, pixel-only resets at any step: the staged set, the AVI fields and DPI_AUD stable",
+      "cover_depth": 20
+    }
+  },
+  "mutations": [
+    {
+      "name": "start_not_held",
+      "task": "dpi_quick",
+      "file": "rtl:blns_dpi_regs.v",
+      "from": "assign pix_en_nxt = (cfg_en & (pix_en | ~run_h_i)) | (pix_en & ~run_h_i);",
+      "to": "assign pix_en_nxt = cfg_en & (pix_en | ~run_h_i);",
+      "expect": [
+        "a_staged_stable"
+      ],
+      "depth": 14
+    },
+    {
+      "name": "stop_unlocks_update",
+      "task": "dpi",
+      "file": "rtl:blns_dpi_regs.v",
+      "from": "| (upd_pend & (pix_en | run_h_i));",
+      "to": "| (upd_pend & pix_en);",
+      "expect": [
+        "a_staged_stable"
+      ],
+      "depth": 24,
+      "keep_going": false
+    },
+    {
+      "name": "lock_ignores_update",
+      "task": "dpi_quick",
+      "file": "rtl:blns_dpi_regs.v",
+      "from": "assign st_lock    = start_lock | (upd_pend & (pix_en | run_h_i));",
+      "to": "assign st_lock    = start_lock;",
+      "expect": [
+        "a_staged_stable"
+      ],
+      "depth": 24
+    },
+    {
+      "name": "lock_ignores_start",
+      "task": "dpi_quick",
+      "file": "rtl:blns_dpi_regs.v",
+      "from": "assign st_lock    = start_lock | (upd_pend & (pix_en | run_h_i));",
+      "to": "assign st_lock    = (upd_pend & (pix_en | run_h_i));",
+      "expect": [
+        "a_staged_stable"
+      ],
+      "depth": 16
+    },
+    {
+      "name": "update_while_pending",
+      "task": "dpi_quick",
+      "file": "rtl:blns_dpi_regs.v",
+      "from": "assign upd_wr     = reg_wr & sel_ctrl & reg_wdata_i[0] & pix_en & ~st_lock;",
+      "to": "assign upd_wr     = reg_wr & sel_ctrl & reg_wdata_i[0] & pix_en;",
+      "expect": [
+        "a_upd_handshake",
+        "a_staged_stable"
+      ],
+      "depth": 24
+    },
+    {
+      "name": "size_without_ack",
+      "task": "dpi_quick",
+      "file": "rtl:blns_dpi_bdi.v",
+      "from": "assign sz_send   = prst_h_i & (sz_req_o == sz_ack_i) & ((fsz_w != sz_w_o) | (fsz_h != sz_h_o) | sz_rs);",
+      "to": "assign sz_send   = prst_h_i & ((fsz_w != sz_w_o) | (fsz_h != sz_h_o) | sz_rs);",
+      "expect": [
+        "a_sz_handshake",
+        "a_sz_stable",
+        "a_sz_value"
+      ],
+      "depth": 16
+    },
+    {
+      "name": "size_sampled_late",
+      "task": "dpi_quick",
+      "file": "rtl:blns_dpi_scan.v",
+      "from": "    .d_i({sz_req_i, sz_w_i, sz_h_i}), .q_o({sz_ack, src_w, src_h}));",
+      "to": "    .d_i({sz_req_i, sz_w_i ^ {DIM_W{sz_req_i ^ sz_ack}}, sz_h_i}), .q_o({sz_ack, src_w, src_h}));",
+      "expect": [
+        "a_sz_value"
+      ],
+      "depth": 16
+    },
+    {
+      "name": "fields_unlocked",
+      "task": "hdmi",
+      "file": "rtl:blns_dpi_regs.v",
+      "from": "        wire   fld_lock = start_lock | (hdmi_cfg[1] & upd_pend & (pix_en | run_h_i));",
+      "to": "        wire   fld_lock = 1'b0;",
+      "expect": [
+        "a_fld_stable"
+      ],
+      "depth": 24
+    },
+    {
+      "name": "fields_start_unlocked",
+      "task": "hdmi",
+      "file": "rtl:blns_dpi_regs.v",
+      "from": "        wire   fld_lock = start_lock | (hdmi_cfg[1] & upd_pend & (pix_en | run_h_i));",
+      "to": "        wire   fld_lock = hdmi_cfg[1] & upd_pend & (pix_en | run_h_i);",
+      "expect": [
+        "a_fld_stable"
+      ],
+      "depth": 16
+    },
+    {
+      "name": "aud_unlocked",
+      "task": "hdmi",
+      "file": "rtl:blns_dpi_regs.v",
+      "from": "            .clk_i(hclk_i), .rst_n_i(hresetn_i), .en_i(reg_wr & sel_aud & ~aud_lock),",
+      "to": "            .clk_i(hclk_i), .rst_n_i(hresetn_i), .en_i(reg_wr & sel_aud),",
+      "expect": [
+        "a_aud_stable"
+      ],
+      "depth": 16
+    },
+    {
+      "name": "aud_lock_on_active",
+      "task": "hdmi",
+      "edits": [
+        [
+          "rtl:blns_dpi_regs.v",
+          "            wire aud_x_nxt = (aud_x == aud_echo_h_i) ? aud_ctl[0] : aud_x;",
+          "            wire aud_x_nxt = aud_ctl[0];"
+        ],
+        [
+          "rtl:blns_dpi_regs.v",
+          "            assign aud_lock = aud_ctl[0] | aud_x | aud_echo_h_i;",
+          "            assign aud_lock = aud_ctl[0] | aud_st_h_i[1];"
+        ]
+      ],
+      "expect": [
+        "a_aud_stable"
+      ],
+      "depth": 20
+    },
+    {
+      "name": "aud_no_handshake",
+      "task": "hdmi",
+      "file": "rtl:blns_dpi_regs.v",
+      "from": "            wire aud_x_nxt = (aud_x == aud_echo_h_i) ? aud_ctl[0] : aud_x;",
+      "to": "            wire aud_x_nxt = aud_ctl[0];",
+      "expect": [
+        "a_aud_stable"
+      ],
+      "depth": 20
+    },
+    {
+      "name": "fill_bank0_always",
+      "task": "dpi",
+      "file": "rtl:blns_dpi_bdi.v",
+      "from": "assign wb_pick    = ~full_h & ~(~full_h - {{(NB-1){1'b0}}, 1'b1});",
+      "to": "assign wb_pick    = {{(NB-1){1'b0}}, 1'b1};",
+      "expect": [
+        "a_bank_fill_rel",
+        "a_tag_stable"
+      ],
+      "depth": 26,
+      "keep_going": false
+    },
+    {
+      "name": "tag_other_bank",
+      "task": "dpi",
+      "file": "rtl:blns_dpi_bdi.v",
+      "from": "            .clk_i(hclk_i), .rst_n_i(hresetn_i), .en_i(px_take & wsel[gb] & wx_first),",
+      "to": "            .clk_i(hclk_i), .rst_n_i(hresetn_i), .en_i(px_take & ~wsel[gb] & wx_first),",
+      "expect": [
+        "a_tag_stable"
+      ],
+      "depth": 26,
+      "keep_going": false
+    },
+    {
+      "name": "drop_writes",
+      "task": "dpi",
+      "file": "rtl:blns_dpi_bdi.v",
+      "from": "assign px_take    = px_acc & ~drn;",
+      "to": "assign px_take    = px_acc;",
+      "expect": [
+        "a_drop_no_write"
+      ],
+      "depth": 24,
+      "keep_going": false
+    },
+    {
+      "name": "frame_start_ignores_done",
+      "task": "dpi",
+      "file": "rtl:blns_dpi_bdi.v",
+      "from": "assign fwait_nxt  = fs_evt_i & pix_en_i & active & ~drn & ~dn_evt_i;",
+      "to": "assign fwait_nxt  = fs_evt_i & pix_en_i & active & ~drn;",
+      "expect": [
+        "a_done_order"
+      ],
+      "depth": 30,
+      "keep_going": false
+    },
+    {
+      "name": "no_prst_detect",
+      "task": "dpi_prst",
+      "file": "rtl:blns_dpi_regs.v",
+      "from": "assign run_ok     = run_h_i & prst_h_i;",
+      "to": "assign run_ok     = run_h_i;",
+      "expect": [
+        "a_staged_stable"
+      ],
+      "depth": 24
+    }
+  ],
+  "probes": {
+    "p_fs_p": "u_dut.fs_p",
+    "p_idn_p": "u_dut.idn_p",
+    "p_idn_h": "u_dut.idn_h",
+    "p_abandon": "u_dut.abandon",
+    "p_drn": "u_dut.u_dpi_bdi.drn",
+    "p_spend": "u_dut.u_dpi_bdi.spend"
+  }
+}

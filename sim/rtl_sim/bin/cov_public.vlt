@@ -1,0 +1,21 @@
+`verilator_config
+//----------------------------------------------------------------------------
+//          _    _           Family:    aRVern Graphic Controller
+//         / \__/ \          Module:    cov_public
+//        /   /\   \         --------------------------------------------
+//    ===/   /=========      Copyright: (c) 2026, aRVern-dev
+//      /   / RV \   \       Contact:   arvernsilicon@gmail.com
+//     /___/______\___\      GitHub:    https://github.com/Arvern-Silicon
+//
+// SPDX-License-Identifier: BSD-3-Clause
+// Full license text is available in the LICENSE file at the repository root.
+//----------------------------------------------------------------------------
+// File Name          : cov_public.vlt
+// Module Description : Nets made public for the Verilator coverage build.
+//----------------------------------------------------------------------------
+// The smoke tests read no internal DUT net; only the bench variables shared
+// between processes (monitor gate flags set by the test sequence, the panel
+// models' frame arrays) are made public, so Verilator cannot hand a monitor a
+// stale copy. Kept narrow on purpose: making everything public
+// (--public-flat-rw) changes the scheduling of the gated clock.
+public_flat_rw -module "tb_belenos" -var "*"

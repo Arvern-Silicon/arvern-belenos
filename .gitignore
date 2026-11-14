@@ -1,0 +1,59 @@
+WIP_*
+.DS_Store
+__pycache__
+build
+fusesoc.conf
+doc/private/
+doc/*_review*
+
+# Simulation (sim/rtl_sim/run): generated files, logs and coverage
+sim/rtl_sim/run/simv*
+sim/rtl_sim/run/obj_dir/
+sim/rtl_sim/run/*.gtkw
+sim/rtl_sim/run/stimulus.v
+sim/rtl_sim/run/submit_sim.f
+sim/rtl_sim/run/submit_lint.f
+sim/rtl_sim/run/*.vcd
+sim/rtl_sim/run/*.fst
+sim/rtl_sim/run/*.log
+sim/rtl_sim/run/log/
+sim/rtl_sim/run/log_lint/
+sim/rtl_sim/run/log_sweep
+sim/rtl_sim/run/log_sweep/
+sim/rtl_sim/run/log_runs/
+sim/rtl_sim/run/.log_sweep.*
+sim/rtl_sim/run/cov/
+sim/rtl_sim/run/cov_archive/
+sim/rtl_sim/run/WORK/
+
+# VC Static signoff lint: generated reports and scratch, plus the local docker
+# driver (contains a host-specific mount path).
+lint/vc_static/results
+lint/vc_static/results_sweep
+lint/vc_static/*_d
+
+# Synthesis: tool scratch, results, generated inputs, local docker drivers and
+# local technology libraries.
+synthesis/synopsys/*_d
+synthesis/synopsys/alib*
+synthesis/synopsys/WORK
+synthesis/synopsys/filenames*
+synthesis/synopsys/clog*
+synthesis/synopsys/results/
+synthesis/synopsys/results_sweep/
+synthesis/synopsys/submit_syn.tcl
+synthesis/synopsys/rtl_params.tcl
+synthesis/synopsys/libraries/setup_t*.tcl
+synthesis/synopsys/libraries/setup_lib_*.tcl
+synthesis/synopsys/libraries/t*
+synthesis/synopsys/_stub_bin/
+synthesis/synopsys/default.svf
+synthesis/synopsys/command.log
+synthesis/synopsys/*.tmp
+synthesis/synopsys/results_sweep*
+
+# Formal proofs (formal/run_all) and the structural CDC check (lint/cdc):
+# generated work directories and reports
+formal/work/
+formal/*/work/
+lint/cdc/results/

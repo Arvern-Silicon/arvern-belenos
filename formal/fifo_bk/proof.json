@@ -1,0 +1,605 @@
+{
+  "description": "blns_bk_fifo alone (count, order) and in blns_backend (the no-push-when-full / no-pop-when-empty rule it relies on)",
+  "top": "fifo_bk_fv",
+  "clocking": "single",
+  "files": [
+    "ips:arv_ipdff.v",
+    "rtl:blns_bk_fifo.v",
+    "rtl:blns_bk_fetch.v",
+    "rtl:blns_bk_cursor.v",
+    "rtl:blns_bk_color.v",
+    "rtl:blns_bk_hwcol.v",
+    "rtl:blns_backend.v",
+    "fifo_bk_fv.sv",
+    "bk_ctx_fv.sv"
+  ],
+  "tasks": {
+    "raw8": {
+      "top": "fifo_bk_fv",
+      "params": {
+        "DEPTH": 8,
+        "PW": 3,
+        "CW": 4
+      },
+      "depth": 8,
+      "induction": true,
+      "cover": true,
+      "note": "the raw pixel FIFO shape at read latency 4, tracked entry",
+      "probes": {
+        "p_wr_ptr": "u_dut.u_wr_ptr.q_o",
+        "p_rd_ptr": "u_dut.u_rd_ptr.q_o",
+        "p_mem[7:0]": "\\u_dut.g_entry[0].u_entry.q_o",
+        "p_mem[15:8]": "\\u_dut.g_entry[1].u_entry.q_o",
+        "p_mem[23:16]": "\\u_dut.g_entry[2].u_entry.q_o",
+        "p_mem[31:24]": "\\u_dut.g_entry[3].u_entry.q_o",
+        "p_mem[39:32]": "\\u_dut.g_entry[4].u_entry.q_o",
+        "p_mem[47:40]": "\\u_dut.g_entry[5].u_entry.q_o",
+        "p_mem[55:48]": "\\u_dut.g_entry[6].u_entry.q_o",
+        "p_mem[63:56]": "\\u_dut.g_entry[7].u_entry.q_o"
+      },
+      "cover_depth": 14
+    },
+    "raw5": {
+      "top": "fifo_bk_fv",
+      "params": {
+        "DEPTH": 5,
+        "PW": 3,
+        "CW": 3
+      },
+      "depth": 8,
+      "induction": true,
+      "cover": true,
+      "note": "the raw pixel FIFO shape at read latency 1 (non-power-of-two wrap)",
+      "probes": {
+        "p_wr_ptr": "u_dut.u_wr_ptr.q_o",
+        "p_rd_ptr": "u_dut.u_rd_ptr.q_o",
+        "p_mem[7:0]": "\\u_dut.g_entry[0].u_entry.q_o",
+        "p_mem[15:8]": "\\u_dut.g_entry[1].u_entry.q_o",
+        "p_mem[23:16]": "\\u_dut.g_entry[2].u_entry.q_o",
+        "p_mem[31:24]": "\\u_dut.g_entry[3].u_entry.q_o",
+        "p_mem[39:32]": "\\u_dut.g_entry[4].u_entry.q_o"
+      },
+      "cover_depth": 8
+    },
+    "raw6": {
+      "top": "fifo_bk_fv",
+      "params": {
+        "DEPTH": 6,
+        "PW": 3,
+        "CW": 3
+      },
+      "depth": 8,
+      "induction": true,
+      "cover": true,
+      "note": "the raw pixel FIFO shape at read latency 2 (non-power-of-two wrap)",
+      "probes": {
+        "p_wr_ptr": "u_dut.u_wr_ptr.q_o",
+        "p_rd_ptr": "u_dut.u_rd_ptr.q_o",
+        "p_mem[7:0]": "\\u_dut.g_entry[0].u_entry.q_o",
+        "p_mem[15:8]": "\\u_dut.g_entry[1].u_entry.q_o",
+        "p_mem[23:16]": "\\u_dut.g_entry[2].u_entry.q_o",
+        "p_mem[31:24]": "\\u_dut.g_entry[3].u_entry.q_o",
+        "p_mem[39:32]": "\\u_dut.g_entry[4].u_entry.q_o",
+        "p_mem[47:40]": "\\u_dut.g_entry[5].u_entry.q_o"
+      },
+      "cover_depth": 10
+    },
+    "raw7": {
+      "top": "fifo_bk_fv",
+      "params": {
+        "DEPTH": 7,
+        "PW": 3,
+        "CW": 3
+      },
+      "depth": 8,
+      "induction": true,
+      "cover": true,
+      "note": "the raw pixel FIFO shape at read latency 3 (non-power-of-two wrap)",
+      "probes": {
+        "p_wr_ptr": "u_dut.u_wr_ptr.q_o",
+        "p_rd_ptr": "u_dut.u_rd_ptr.q_o",
+        "p_mem[7:0]": "\\u_dut.g_entry[0].u_entry.q_o",
+        "p_mem[15:8]": "\\u_dut.g_entry[1].u_entry.q_o",
+        "p_mem[23:16]": "\\u_dut.g_entry[2].u_entry.q_o",
+        "p_mem[31:24]": "\\u_dut.g_entry[3].u_entry.q_o",
+        "p_mem[39:32]": "\\u_dut.g_entry[4].u_entry.q_o",
+        "p_mem[47:40]": "\\u_dut.g_entry[5].u_entry.q_o",
+        "p_mem[55:48]": "\\u_dut.g_entry[6].u_entry.q_o"
+      },
+      "cover_depth": 12
+    },
+    "oq3": {
+      "top": "fifo_bk_fv",
+      "params": {
+        "DEPTH": 3,
+        "PW": 2,
+        "CW": 2
+      },
+      "depth": 8,
+      "induction": true,
+      "cover": true,
+      "note": "the output queue shape (non-power-of-two wrap)",
+      "probes": {
+        "p_wr_ptr": "u_dut.u_wr_ptr.q_o",
+        "p_rd_ptr": "u_dut.u_rd_ptr.q_o",
+        "p_mem[7:0]": "\\u_dut.g_entry[0].u_entry.q_o",
+        "p_mem[15:8]": "\\u_dut.g_entry[1].u_entry.q_o",
+        "p_mem[23:16]": "\\u_dut.g_entry[2].u_entry.q_o"
+      }
+    },
+    "ctx_lut_lat1": {
+      "top": "bk_ctx_fv",
+      "params": {
+        "RD_LAT": 1,
+        "LUT_EN": 1,
+        "CURSOR_EN": 1
+      },
+      "depth": 24,
+      "induction": false,
+      "cover": true,
+      "probes": {
+        "p_flush": "u_dut.flush",
+        "p_fetch_push": "u_dut.fetch_push",
+        "p_raw_pop": "u_dut.raw_pop",
+        "p_raw_cnt": "u_dut.raw_cnt",
+        "p_px_take": "u_dut.px_take",
+        "p_credit": "u_dut.credit",
+        "p_color_push": "u_dut.g_lut.color_push",
+        "p_oq_cnt": "u_dut.g_lut.oq_cnt",
+        "p_b_valid": "u_dut.blns_bk_fetch_inst.b_valid",
+        "p_b_new": "u_dut.blns_bk_fetch_inst.b_new",
+        "p_c_lut": "u_dut.g_lut.blns_bk_color_inst.c_lut",
+        "p_active_dly": "u_dut.active_dly",
+        "p_issue": "u_dut.issue",
+        "p_cur_sel": "u_dut.cur_sel",
+        "p_b_fetch": "u_dut.blns_bk_fetch_inst.b_fetch",
+        "p_b_cur": "u_dut.b_cur",
+        "p_cur_wait": "u_dut.g_cursor.blns_bk_cursor_inst.cur_wait",
+        "p_in_box": "u_dut.g_cursor.blns_bk_cursor_inst.in_box",
+        "p_bv": "u_dut.g_cursor.blns_bk_cursor_inst.bv",
+        "p_bt": "u_dut.g_cursor.blns_bk_cursor_inst.bt",
+        "p_go": "u_dut.go",
+        "p_pa": "u_dut.blns_bk_fetch_inst.pa",
+        "p_yofs": "u_dut.yofs",
+        "p_cfg_base": "u_dut.cfg_base",
+        "p_cfg_sw": "u_dut.cfg_src_width",
+        "p_cfg_sh": "u_dut.cfg_src_height",
+        "p_cfg_pitch": "u_dut.cfg_pitch",
+        "p_cfg_swap": "u_dut.cfg_swap"
+      },
+      "note": "blns_backend, LUT build, read latency 1 (bounded: 24 cycles from reset)",
+      "cover_depth": 24,
+      "timeout": 7200
+    },
+    "ctx_lut_lat4": {
+      "top": "bk_ctx_fv",
+      "params": {
+        "RD_LAT": 4,
+        "LUT_EN": 1,
+        "CURSOR_EN": 1
+      },
+      "depth": 24,
+      "induction": false,
+      "cover": true,
+      "probes": {
+        "p_flush": "u_dut.flush",
+        "p_fetch_push": "u_dut.fetch_push",
+        "p_raw_pop": "u_dut.raw_pop",
+        "p_raw_cnt": "u_dut.raw_cnt",
+        "p_px_take": "u_dut.px_take",
+        "p_credit": "u_dut.credit",
+        "p_color_push": "u_dut.g_lut.color_push",
+        "p_oq_cnt": "u_dut.g_lut.oq_cnt",
+        "p_b_valid": "u_dut.blns_bk_fetch_inst.b_valid",
+        "p_b_new": "u_dut.blns_bk_fetch_inst.b_new",
+        "p_c_lut": "u_dut.g_lut.blns_bk_color_inst.c_lut",
+        "p_active_dly": "u_dut.active_dly",
+        "p_issue": "u_dut.issue",
+        "p_cur_sel": "u_dut.cur_sel",
+        "p_b_fetch": "u_dut.blns_bk_fetch_inst.b_fetch",
+        "p_b_cur": "u_dut.b_cur",
+        "p_cur_wait": "u_dut.g_cursor.blns_bk_cursor_inst.cur_wait",
+        "p_in_box": "u_dut.g_cursor.blns_bk_cursor_inst.in_box",
+        "p_bv": "u_dut.g_cursor.blns_bk_cursor_inst.bv",
+        "p_bt": "u_dut.g_cursor.blns_bk_cursor_inst.bt",
+        "p_go": "u_dut.go",
+        "p_pa": "u_dut.blns_bk_fetch_inst.pa",
+        "p_yofs": "u_dut.yofs",
+        "p_cfg_base": "u_dut.cfg_base",
+        "p_cfg_sw": "u_dut.cfg_src_width",
+        "p_cfg_sh": "u_dut.cfg_src_height",
+        "p_cfg_pitch": "u_dut.cfg_pitch",
+        "p_cfg_swap": "u_dut.cfg_swap"
+      },
+      "note": "read latency 4 (RD_LAT 3 + RD_REG) (bounded: 24 cycles from reset)",
+      "cover_depth": 24,
+      "timeout": 7200
+    },
+    "ctx_nolut_lat2": {
+      "top": "bk_ctx_fv",
+      "params": {
+        "RD_LAT": 2,
+        "LUT_EN": 0,
+        "CURSOR_EN": 1
+      },
+      "depth": 24,
+      "induction": false,
+      "cover": true,
+      "probes": {
+        "p_flush": "u_dut.flush",
+        "p_fetch_push": "u_dut.fetch_push",
+        "p_raw_pop": "u_dut.raw_pop",
+        "p_raw_cnt": "u_dut.raw_cnt",
+        "p_px_take": "u_dut.px_take",
+        "p_credit": "u_dut.credit",
+        "p_b_valid": "u_dut.blns_bk_fetch_inst.b_valid",
+        "p_b_new": "u_dut.blns_bk_fetch_inst.b_new",
+        "p_active_dly": "u_dut.active_dly",
+        "p_issue": "u_dut.issue",
+        "p_cur_sel": "u_dut.cur_sel",
+        "p_b_fetch": "u_dut.blns_bk_fetch_inst.b_fetch",
+        "p_b_cur": "u_dut.b_cur",
+        "p_cur_wait": "u_dut.g_cursor.blns_bk_cursor_inst.cur_wait",
+        "p_in_box": "u_dut.g_cursor.blns_bk_cursor_inst.in_box",
+        "p_bv": "u_dut.g_cursor.blns_bk_cursor_inst.bv",
+        "p_bt": "u_dut.g_cursor.blns_bk_cursor_inst.bt",
+        "p_go": "u_dut.go",
+        "p_pa": "u_dut.blns_bk_fetch_inst.pa",
+        "p_yofs": "u_dut.yofs",
+        "p_cfg_base": "u_dut.cfg_base",
+        "p_cfg_sw": "u_dut.cfg_src_width",
+        "p_cfg_sh": "u_dut.cfg_src_height",
+        "p_cfg_pitch": "u_dut.cfg_pitch",
+        "p_cfg_swap": "u_dut.cfg_swap"
+      },
+      "note": "LUT_EN = 0: the raw FIFO is the only storage (bounded: 24 cycles from reset)",
+      "cover_depth": 24,
+      "timeout": 7200
+    },
+    "raw8_srst": {
+      "top": "fifo_bk_fv",
+      "params": {
+        "DEPTH": 8,
+        "PW": 3,
+        "CW": 4,
+        "ASYNC_RST_EN": 0
+      },
+      "depth": 8,
+      "induction": true,
+      "cover": false,
+      "note": "synchronous reset",
+      "probes": {
+        "p_wr_ptr": "u_dut.u_wr_ptr.q_o",
+        "p_rd_ptr": "u_dut.u_rd_ptr.q_o",
+        "p_mem[7:0]": "\\u_dut.g_entry[0].u_entry.q_o",
+        "p_mem[15:8]": "\\u_dut.g_entry[1].u_entry.q_o",
+        "p_mem[23:16]": "\\u_dut.g_entry[2].u_entry.q_o",
+        "p_mem[31:24]": "\\u_dut.g_entry[3].u_entry.q_o",
+        "p_mem[39:32]": "\\u_dut.g_entry[4].u_entry.q_o",
+        "p_mem[47:40]": "\\u_dut.g_entry[5].u_entry.q_o",
+        "p_mem[55:48]": "\\u_dut.g_entry[6].u_entry.q_o",
+        "p_mem[63:56]": "\\u_dut.g_entry[7].u_entry.q_o"
+      }
+    },
+    "ctx_nocur_lat1": {
+      "top": "bk_ctx_fv",
+      "params": {
+        "RD_LAT": 1,
+        "LUT_EN": 1,
+        "CURSOR_EN": 0
+      },
+      "depth": 24,
+      "induction": false,
+      "cover": true,
+      "probes": {
+        "p_flush": "u_dut.flush",
+        "p_fetch_push": "u_dut.fetch_push",
+        "p_raw_pop": "u_dut.raw_pop",
+        "p_raw_cnt": "u_dut.raw_cnt",
+        "p_px_take": "u_dut.px_take",
+        "p_credit": "u_dut.credit",
+        "p_color_push": "u_dut.g_lut.color_push",
+        "p_oq_cnt": "u_dut.g_lut.oq_cnt",
+        "p_b_valid": "u_dut.blns_bk_fetch_inst.b_valid",
+        "p_b_new": "u_dut.blns_bk_fetch_inst.b_new",
+        "p_c_lut": "u_dut.g_lut.blns_bk_color_inst.c_lut",
+        "p_active_dly": "u_dut.active_dly",
+        "p_issue": "u_dut.issue",
+        "p_cur_sel": "u_dut.cur_sel",
+        "p_b_fetch": "u_dut.blns_bk_fetch_inst.b_fetch",
+        "p_b_cur": "u_dut.b_cur",
+        "p_go": "u_dut.go",
+        "p_pa": "u_dut.blns_bk_fetch_inst.pa",
+        "p_yofs": "u_dut.yofs",
+        "p_cfg_base": "u_dut.cfg_base",
+        "p_cfg_sw": "u_dut.cfg_src_width",
+        "p_cfg_sh": "u_dut.cfg_src_height",
+        "p_cfg_pitch": "u_dut.cfg_pitch",
+        "p_cfg_swap": "u_dut.cfg_swap"
+      },
+      "note": "CURSOR_EN = 0: the slot untagged (bounded: 24 cycles from reset)",
+      "cover_depth": 24,
+      "timeout": 7200
+    }
+  },
+  "mutations": [
+    {
+      "name": "cnt_pushpop",
+      "task": "raw8",
+      "file": "rtl:blns_bk_fifo.v",
+      "from": "wire          cnt_en     = flush_i | (push_i ^ pop_i);",
+      "to": "wire          cnt_en     = flush_i | push_i | pop_i;",
+      "expect": [
+        "a_cnt"
+      ],
+      "depth": 12
+    },
+    {
+      "name": "flush_keeps_wr",
+      "task": "raw8",
+      "file": "rtl:blns_bk_fifo.v",
+      "from": "wire          wr_ptr_en  = flush_i | push_i;",
+      "to": "wire          wr_ptr_en  = push_i;",
+      "expect": [
+        "a_order"
+      ],
+      "depth": 12
+    },
+    {
+      "name": "wrap_at_pow2",
+      "task": "oq3",
+      "file": "rtl:blns_bk_fifo.v",
+      "from": "wire [PW-1:0] rd_ptr_inc = (rd_ptr == PTR_LAST) ? {PW{1'b0}} : (rd_ptr + {{(PW-1){1'b0}}, 1'b1});",
+      "to": "wire [PW-1:0] rd_ptr_inc = rd_ptr + {{(PW-1){1'b0}}, 1'b1};",
+      "expect": [
+        "a_order"
+      ],
+      "depth": 12
+    },
+    {
+      "name": "write_wrong_slot",
+      "task": "raw8",
+      "file": "rtl:blns_bk_fifo.v",
+      "from": "(push_i & ~flush_i & (wr_ptr == gi[PW-1:0]))",
+      "to": "(push_i & ~flush_i & (rd_ptr == gi[PW-1:0]))",
+      "expect": [
+        "a_order"
+      ],
+      "depth": 12
+    },
+    {
+      "name": "read_mux",
+      "task": "raw8",
+      "file": "rtl:blns_bk_fifo.v",
+      "from": "assign entry_and[gi] = {DW{rd_ptr == gi[PW-1:0]}} & entry;",
+      "to": "assign entry_and[gi] = {DW{wr_ptr == gi[PW-1:0]}} & entry;",
+      "expect": [
+        "a_order"
+      ],
+      "depth": 12
+    },
+    {
+      "name": "credit_9",
+      "task": "ctx_lut_lat1",
+      "file": "rtl:blns_backend.v",
+      "from": "wire issue_ok = (credit < PX_DEPTH_C);",
+      "to": "wire issue_ok = (credit <= PX_DEPTH_C);",
+      "expect": [
+        "a_raw_no_ovfl",
+        "a_credit"
+      ],
+      "depth": 16
+    },
+    {
+      "name": "oq_slot_late",
+      "task": "ctx_lut_lat1",
+      "file": "rtl:blns_backend.v",
+      "from": "        wire        oq_slot_ok = (({1'b0, oq_cnt} + {{OQ_CW{1'b0}}, color_held}) < OQ_DEPTH_C);",
+      "to": "        wire        oq_slot_ok = ({1'b0, oq_cnt} < OQ_DEPTH_C);",
+      "expect": [
+        "a_oq_no_ovfl"
+      ],
+      "depth": 16
+    },
+    {
+      "name": "oq_pop_unguarded",
+      "task": "ctx_lut_lat1",
+      "file": "rtl:blns_backend.v",
+      "from": "assign oq_valid   = run & px_head_valid;",
+      "to": "assign oq_valid   = run;",
+      "expect": [
+        "a_oq_no_udfl"
+      ],
+      "depth": 16
+    },
+    {
+      "name": "raw_pop_unguarded",
+      "task": "ctx_nolut_lat2",
+      "file": "rtl:blns_backend.v",
+      "from": "        assign px_head_valid = raw_valid;",
+      "to": "        assign px_head_valid = 1'b1;",
+      "expect": [
+        "a_raw_no_udfl"
+      ],
+      "depth": 16
+    },
+    {
+      "name": "color_pop_unguarded",
+      "task": "ctx_lut_lat1",
+      "file": "rtl:blns_backend.v",
+      "from": "            .raw_valid_i  ( raw_valid           ),",
+      "to": "            .raw_valid_i  ( 1'b1                ),",
+      "expect": [
+        "a_raw_no_udfl"
+      ],
+      "depth": 16
+    },
+    {
+      "name": "lut_px_ungranted",
+      "task": "ctx_lut_lat1",
+      "file": "rtl:blns_bk_color.v",
+      "from": ".d_i(raw_pop & lut_mode),",
+      "to": ".d_i(raw_valid_i & lut_mode),",
+      "expect": [
+        "a_lut_data"
+      ],
+      "depth": 16
+    },
+    {
+      "name": "new_without_fetch",
+      "task": "ctx_lut_lat1",
+      "file": "rtl:blns_bk_fetch.v",
+      "from": ".d_i(fetch),  .q_o(tk_new[0])",
+      "to": ".d_i(issue),  .q_o(tk_new[0])",
+      "expect": [
+        "a_word_data"
+      ],
+      "depth": 16
+    },
+    {
+      "name": "pix_req_while_wait",
+      "task": "ctx_lut_lat1",
+      "file": "rtl:blns_bk_fetch.v",
+      "from": "assign vreq_o  = req_on_i & ~done & issue_ok_i & need_fetch & ~cur_wait_i & ~cur_sel_i;",
+      "to": "assign vreq_o  = req_on_i & ~done & issue_ok_i & need_fetch & ~cur_sel_i;",
+      "expect": [
+        "a_pgnt_issue"
+      ],
+      "depth": 20
+    },
+    {
+      "name": "cur_sel_steals_slot",
+      "task": "ctx_lut_lat1",
+      "file": "rtl:blns_bk_cursor.v",
+      "from": "wire             edge_ok   = vgnt_i | ~walk_free;",
+      "to": "wire             edge_ok   = 1'b1;",
+      "expect": [
+        "a_slot_hold"
+      ],
+      "depth": 20
+    },
+    {
+      "name": "tag_loads_wbuf",
+      "task": "ctx_lut_lat1",
+      "file": "rtl:blns_bk_fetch.v",
+      "from": "wire        b_fetch = vrvalid_i & ~vrtag_i;",
+      "to": "wire        b_fetch = vrvalid_i;",
+      "expect": [
+        "a_tag_wbuf"
+      ],
+      "depth": 20
+    },
+    {
+      "name": "cur_issue_early",
+      "task": "ctx_lut_lat1",
+      "file": "rtl:blns_bk_cursor.v",
+      "from": "assign cur_wait_o = cur_wait;",
+      "to": "assign cur_wait_o = cur_wait & ~pair_end;",
+      "expect": [
+        "a_cur_ret"
+      ],
+      "depth": 20
+    },
+    {
+      "name": "cur_wait_stale",
+      "task": "ctx_lut_lat1",
+      "file": "rtl:blns_bk_cursor.v",
+      "from": "wire             bv_q      = bv_en    ? bv_nxt      : bv;",
+      "to": "wire             bv_q      = bv;",
+      "expect": [
+        "a_cur_wait"
+      ],
+      "depth": 20
+    },
+    {
+      "name": "lreq_nxt_raw_push",
+      "task": "ctx_lut_lat1",
+      "file": "rtl:blns_backend.v",
+      "from": "wire        raw_valid_nxt = ~flush & (fetch_push |",
+      "to": "wire        raw_valid_nxt = ~flush & (1'b0 |",
+      "expect": [
+        "a_lreq_nxt"
+      ],
+      "depth": 16
+    },
+    {
+      "name": "lreq_nxt_raw_pop",
+      "task": "ctx_lut_lat1",
+      "file": "rtl:blns_backend.v",
+      "from": "(raw_valid & ~raw_pop));",
+      "to": "raw_valid);",
+      "expect": [
+        "a_lreq_nxt"
+      ],
+      "depth": 16
+    },
+    {
+      "name": "lreq_nxt_slot_held",
+      "task": "ctx_lut_lat1",
+      "file": "rtl:blns_backend.v",
+      "from": "wire        oq_slot_ok_nxt = ((oq_cnt_nxt + {{OQ_CW{1'b0}}, raw_pop}) < OQ_DEPTH_C);",
+      "to": "wire        oq_slot_ok_nxt = (oq_cnt_nxt < OQ_DEPTH_C);",
+      "expect": [
+        "a_lreq_nxt"
+      ],
+      "depth": 16
+    },
+    {
+      "name": "lreq_nxt_slot_take",
+      "task": "ctx_lut_lat1",
+      "file": "rtl:blns_backend.v",
+      "from": " - {{OQ_CW{1'b0}}, px_take});",
+      "to": ");",
+      "expect": [
+        "a_lreq_nxt"
+      ],
+      "depth": 16
+    },
+    {
+      "name": "lreq_nxt_lut_mode",
+      "task": "ctx_lut_lat1",
+      "file": "rtl:blns_bk_color.v",
+      "from": "assign lreq_nxt_o = raw_valid_nxt_i & slot_ok_nxt_i & req_on_nxt_i & lut_mode;",
+      "to": "assign lreq_nxt_o = raw_valid_nxt_i & slot_ok_nxt_i & req_on_nxt_i;",
+      "expect": [
+        "a_lreq_nxt"
+      ],
+      "depth": 16
+    },
+    {
+      "name": "yofs_step_short",
+      "task": "ctx_lut_lat1",
+      "file": "rtl:blns_backend.v",
+      "from": "wire             mdone = (mcnt == {MC_W{1'b0}});",
+      "to": "wire             mdone = (mcnt == {{(MC_W-1){1'b0}}, 1'b1});",
+      "expect": [
+        "a_yofs",
+        "a_start_pa"
+      ],
+      "depth": 20
+    },
+    {
+      "name": "yofs_bit_order",
+      "task": "ctx_lut_lat1",
+      "file": "rtl:blns_backend.v",
+      "from": "wire             mbit          = mbits[mcnt];",
+      "to": "wire             mbit          = mbits[MC_START[MC_W-1:0] + 1'b1 - mcnt];",
+      "expect": [
+        "a_yofs",
+        "a_start_pa"
+      ],
+      "depth": 20
+    },
+    {
+      "name": "req_before_start",
+      "task": "ctx_lut_lat1",
+      "file": "rtl:blns_backend.v",
+      "from": "    .req_on_i     ( go                ),",
+      "to": "    .req_on_i     ( active_dly        ),",
+      "expect": [
+        "a_slot_hold"
+      ],
+      "depth": 20
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{reg: [
+  {bits: 12, name: 'N'},
+  {bits: 1, name: 'AXIS', rotate: -90},
+  {bits: 4, name: 'STEP (signed)'},
+  {bits: 1, name: 'EN', rotate: -90},
+  {bits: 1, name: 'RGB', rotate: -90},
+  {bits: 5},
+  {bits: 4, name: '7 (GRAD)'},
+  {bits: 4, name: '0x6', attr: 'SET_GRAD'}
+], config: {bits: 32, lanes: 1, hspace: 900, vspace: 100}}

@@ -1,0 +1,10 @@
+{signal: [
+  {name: 'spi_cs_n_o', wave: '10.................'},
+  {name: 'spi_dc_o',   wave: 'x.0...............1'},
+  {name: 'spi_sck_o',  wave: '0..1010101010101010'},
+  {name: 'spi_mosi_o', wave: 'x.0...1.0.1.0.1.0.x'},
+  {name: 'bit',        wave: 'x.2.2.2.2.2.2.2.2.x', data: ['7','6','5','4','3','2','1','0']}
+],
+  head: {text: 'SPI PHY, CLK_DIV = 0: command byte 0x2A (mode 0, MSB first), then D/C high for the parameters'},
+  config: {hscale: 1.2}
+}

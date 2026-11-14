@@ -1,0 +1,87 @@
+CAPI=2:
+
+# ----------------------------------------------------------------------------
+#          _    _           Family:    aRVern Graphic Controller
+#         / \__/ \          File:      belenos.core
+#        /   /\   \         --------------------------------------------
+#    ===/   /=========      Copyright: (c) 2026, aRVern-dev
+#      /   / RV \   \       Contact:   arvernsilicon@gmail.com
+#     /___/______\___\      GitHub:    https://github.com/Arvern-Silicon
+#
+# SPDX-License-Identifier: BSD-3-Clause
+# ----------------------------------------------------------------------------
+# FuseSoC manifest for external integration. Native sim flow is under
+# sim/rtl_sim/; the file list must match rtl/verilog/filelist.f
+# (sim/rtl_sim/bin/check_core_manifest.py, run by run_lint).
+# ----------------------------------------------------------------------------
+
+name: arvern:belenos:belenos:0.1.0
+description: Belenos 32-bit graphic controller (AHB-Lite register and VRAM ports, GPU; display drivers MIPI-DBI 8080/SPI, MIPI-DPI and HDMI with audio, or the exported BDI).
+
+filesets:
+  rtl:
+    file_type: verilogSource
+    files:
+      - rtl/verilog/blns_ahb_reg.v
+      - rtl/verilog/blns_ahb_vram.v
+      - rtl/verilog/blns_backend.v
+      - rtl/verilog/blns_bk_color.v
+      - rtl/verilog/blns_bk_cursor.v
+      - rtl/verilog/blns_bk_fetch.v
+      - rtl/verilog/blns_bk_fifo.v
+      - rtl/verilog/blns_bk_hwcol.v
+      - rtl/verilog/blns_dbi.v
+      - rtl/verilog/blns_dbi_8080.v
+      - rtl/verilog/blns_dbi_engine.v
+      - rtl/verilog/blns_dbi_fifo.v
+      - rtl/verilog/blns_dbi_spi.v
+      - rtl/verilog/blns_dpi.v
+      - rtl/verilog/blns_dpi_regs.v
+      - rtl/verilog/blns_dpi_bdi.v
+      - rtl/verilog/blns_dpi_scan.v
+      - rtl/verilog/blns_dpi_cdc.v
+      - rtl/verilog/blns_tmds.v
+      - rtl/verilog/blns_hdmi.v
+      - rtl/verilog/blns_hdmi_i2s.v
+      - rtl/verilog/blns_gpu.v
+      - rtl/verilog/blns_gpu_dec.v
+      - rtl/verilog/blns_gpu_setup.v
+      - rtl/verilog/blns_gpu_tri_setup.v
+      - rtl/verilog/blns_gpu_px.v
+      - rtl/verilog/blns_gpu_px_a.v
+      - rtl/verilog/blns_gpu_px_fw.v
+      - rtl/verilog/blns_gpu_px_l.v
+      - rtl/verilog/blns_gpu_px_tc.v
+      - rtl/verilog/blns_gpu_fifo.v
+      - rtl/verilog/blns_gpu_list.v
+      - rtl/verilog/blns_gpu_walk.v
+      - rtl/verilog/blns_lut.v
+      - rtl/verilog/blns_refresh.v
+      - rtl/verilog/blns_regs.v
+      - rtl/verilog/blns_vram_arb.v
+      - rtl/verilog/belenos_core.v
+      - rtl/verilog/belenos.v
+    depend:
+      - arvern:ips:arv_primitives:1.0.0
+
+  # Clock-crossing constraints for DPI_PCLK_SEP = 1, belenos_dpi.sdc for Vivado
+  # and Gowin, belenos_dpi_dc.sdc for Design Compiler and PrimeTime. Deliberately
+  # in no target: each needs BLNS, PCLK and PCLK_PERIOD defined and the clocks
+  # created first, so the integrator sources it from their own constraints (its
+  # header, doc/integration_guide.md "Timing constraints"); a tool reading it
+  # on its own would see the variables undefined.
+  constraints:
+    file_type: SDC
+    files:
+      - rtl/constraints/belenos_dpi.sdc
+      - rtl/constraints/belenos_dpi_dc.sdc
+
+targets:
+  default: &default
+    filesets: [rtl]
+
+  lint:
+    <<: *default
+    flow: lint
+    flow_options: {tool: verilator}
+    toplevel: belenos

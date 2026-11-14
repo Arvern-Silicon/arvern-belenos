@@ -1,0 +1,104 @@
+#----------------------------------------------------------------------------
+#          _    _           Family:    aRVern Graphic Controller
+#         / \__/ \          Module:    waivers
+#        /   /\   \         --------------------------------------------
+#    ===/   /=========      Copyright: (c) 2026, aRVern-dev
+#      /   / RV \   \       Contact:   arvernsilicon@gmail.com
+#     /___/______\___\      GitHub:    https://github.com/Arvern-Silicon
+#
+# SPDX-License-Identifier: BSD-3-Clause
+# Full license text is available in the LICENSE file at the repository root.
+#----------------------------------------------------------------------------
+# File Name          : waivers.txt
+# Module Description : Synthesis-message waivers (one filter pattern per line).
+#----------------------------------------------------------------------------
+# Synthesis warning waivers
+# ============================================================================
+# Each non-comment, non-blank line is an extended-regex pattern (grep -E)
+# applied against the full text of each `^Warning:` line in synthesis.log.
+# Any matching line counts toward `waived=N` in the RTL synthesis summary
+# instead of toward `warnings=N`. PASS/FAIL is unaffected (errors are not
+# waivable; only the noise floor is filtered).
+#
+# Syntax
+# ------
+#   - Lines starting with `#`         → ignored (full-line comment).
+#   - Blank lines                     → ignored.
+#   - Trailing ` #note`               → inline comment, stripped before match
+#                                       (use a SPACE before `#` to mark it).
+#   - Otherwise the line is a regex   → use `^`/`$` to anchor, `\.` for a
+#                                       literal dot, `|` for alternation.
+#   - Leading/trailing whitespace     → trimmed.
+#
+# How targeted should a waiver be?
+# --------------------------------
+#   - LOOSE   `VER-61`                          matches the substring "VER-61"
+#                                               anywhere in the Warning line.
+#                                               Easy to write, but a future
+#                                               unrelated warning that happens
+#                                               to mention "VER-61" would also
+#                                               be silently waived.
+#   - TIGHT   `^Warning:.*\(VER-61\)$`          matches the full DC message
+#                                               format. Recommended when the
+#                                               warning text has a clear
+#                                               anchored pattern.
+#   - VERBATIM
+#             `^Warning: Design 'belenos' contains [0-9]+ high-fanout nets`
+#                                               matches exact wording with
+#                                               a digit-count wildcard.
+#                                               Most precise; survives DC
+#                                               version drift only in the
+#                                               wildcarded portions.
+# ============================================================================
+
+# --- High-fanout net (>=1000 fanout): Synopsys uses 1000 as the delay-calc
+# fanout. Informational: hclk_i, hresetn_i and the scan enable inserted by DFT.
+^Warning: Design '[^']+' contains [0-9]+ high-fanout nets.*\(TIM-134\)
+
+# --- DesignWare synthetic library auto-added to synthetic_library on every
+# `elaborate`. Informational.
+^Warning: DesignWare synthetic library .* added to the synthetic_library.*\(UISN-40\)
+
+# --- check_timing "no_input_delay": the asynchronous inputs lcd_d_i, lcd_te_i,
+# spi_miso_i (no load), and for the DPI / HDMI driver panel_detect_i, ddc_scl_i,
+# ddc_sda_i, i2s_bclk_i, i2s_lrck_i, i2s_sd_i (and dpi_presetn_i with an
+# asynchronous reset) carry no input delay by design -- each enters through an
+# arv_synchronizer and is false-pathed in constraints_ports.tcl (ahb_aclint and
+# arv_dtm have the same pattern on their asynchronous inputs). The port list
+# follows on the next lines of synthesis.log and is not matched here: after a
+# constraint change, check that it still names only those ports. Every other
+# DPI port (dpi_lb_rdata_i included) has a delay since constraints_dpi.tcl /
+# the DPI section of constraints_ports.tcl.
+^Warning: The following input ports have no clock_relative delay specified, the command set_input_delay without -clock option will be ignored\. \(TIM-216\)
+
+# --- check_timing "unconstrained_endpoints" at PRE-compile only: flops whose
+# next-state logic is constant in a reduced configuration (e.g. the frame
+# select u_frame_sel with FRAME_NR=1) still
+# expose GTECH pseudo-pins (next_state, synch_enable) before compile_ultra
+# removes or maps them. The post-compile check_timing (results/report.timing,
+# not echoed to synthesis.log) lists only DFT scan endpoints (test_so* ports,
+# flop SE/SI pins), so the line that reaches synthesis.log is always the
+# pre-compile one. This pattern would also hide a future output port left
+# without an output delay: after a constraint change, read report.check_timing_pre.
+# With DPI_PCLK_SEP = 1 the pixel clock is defined (constraints_dpi.tcl), so
+# the pixel-domain flops of the DPI / HDMI driver are not among these
+# endpoints: a DPI build whose pre-compile list names u_dpi flops means the
+# clock did not attach.
+^Warning: The following end-points are not constrained for maximum delay\.
+
+# --- LINK-17: arv_synchronizer is elaborated with different parameters by
+# different parents (the DPI clock crossing and the other synchronised inputs),
+# so DC renames one copy. Informational; only arv_synchronizer is waived.
+^Warning: Design 'arv_synchronizer_[0-9_]+' was renamed to 'arv_synchronizer_[0-9_]+' to avoid$
+
+# --- OPT-301 on the DPI clock-crossing module only (blns_dpi_cdc): most of its
+# cells are size-only, which is wanted there (the crossing logic must keep its
+# structure). Informational; any other design reporting OPT-301 still counts.
+^Warning: The design named blns_dpi_cdc_[A-Za-z0-9_]+ has [0-9]+ out of [0-9]+ cells marked size-only, which may limit optimization\. \(OPT-301\)$
+
+# --- TIM-179 on the DPI staged-register start points of constraints_dpi.tcl
+# only: a staged-register bit that is constant in the built configuration
+# (e.g. u_st_cfg[0], the FILTER bit, without the scaler) is removed by
+# compile, and its set_max_delay start point goes with it. A TIM-179 naming any
+# other reference still counts.
+^Warning: 'set_max_delay' constraint made a reference 'from G_DPI\.u_dpi/u_dpi_regs/u_st_[a-z_]+/q_o_reg\[[0-9]+\]' which no longer exists\.  \(TIM-179\)$

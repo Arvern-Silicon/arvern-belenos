@@ -1,0 +1,10 @@
+{reg: [
+  {bits: 4, name: 'DPI_LB_AW'},
+  {bits: 2, name: 'DPI_SCALER', rotate: -90},
+  {bits: 1, name: 'PCLK_SEP', rotate: -90},
+  {bits: 1, name: 'TMDS', rotate: -90},
+  {bits: 1, name: 'DDC', rotate: -90},
+  {bits: 1, name: 'ISLAND', rotate: -90},
+  {bits: 1, name: 'AUDIO', rotate: -90},
+  {bits: 21}
+], config: {bits: 32, lanes: 1, hspace: 900, vspace: 130}}

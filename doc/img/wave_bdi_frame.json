@@ -1,0 +1,12 @@
+{signal: [
+  {name: 'hclk',                 wave: 'p....|.......|..'},
+  {name: 'bdi_refresh_trig_o',   wave: '010..|.......|..'},
+  {name: 'bdi_refresh_active_i', wave: '0..1.|.......|.0'},
+  {name: 'bdi_px_valid_o',       wave: '0....|...1...|.0'},
+  {name: 'bdi_px_data_o',        wave: 'x....|...345.|6x', data: ['p0','p1','p2','pN']},
+  {name: 'bdi_px_ready_i',       wave: '1....|.....01|..'},
+  {name: 'bdi_px_last_o',        wave: '0....|.......|10'}
+],
+  head: {text: 'Belenos Display Interface: one frame (p2 is held while ready is low)'},
+  config: {hscale: 2}
+}

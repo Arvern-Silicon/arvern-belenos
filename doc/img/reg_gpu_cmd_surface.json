@@ -1,0 +1,7 @@
+{reg: [
+  {bits: 16, name: 'PITCH (0 = frame width)'},
+  {bits: 4, name: 'SRC_FMT'},
+  {bits: 1, name: 'IMM', rotate: -90},
+  {bits: 7},
+  {bits: 4, name: '0x1', attr: 'SET_SRC'}
+], config: {bits: 32, lanes: 1, hspace: 900, vspace: 120}}

@@ -1,0 +1,5 @@
+{reg: [
+  {bits: 8, name: 'COMMAND'},
+  {bits: 8, name: 'NPARAM'},
+  {bits: 16}
+], config: {bits: 32, lanes: 1, hspace: 900}}

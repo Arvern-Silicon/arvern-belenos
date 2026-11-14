@@ -1,0 +1,6 @@
+{reg: [
+  {bits: 16, name: 'PITCH (0 = frame width)'},
+  {bits: 1, name: 'XY', rotate: -90},
+  {bits: 11},
+  {bits: 4, name: '0x2', attr: 'SET_DST'}
+], config: {bits: 32, lanes: 1, hspace: 900, vspace: 120}}

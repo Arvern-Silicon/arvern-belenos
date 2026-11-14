@@ -1,0 +1,11 @@
+{signal: [
+  {name: 'hclk (free)',   wave: 'p........'},
+  {name: 'r_hsel·htrans', wave: '0.10.....', node: '..a......'},
+  {name: 'phase',         wave: 'x.34x....', data: ['address','data']},
+  {name: 'internal busy', wave: '0........'},
+  {name: 'hclk_en_o',     wave: '0.1..0...', node: '.....b...'}
+],
+  edge: ['a~>b tail: one cycle after the data phase'],
+  head: {text: 'Clock request: a presented transfer wakes the clock; the request stays one cycle past the data phase'},
+  config: {hscale: 2}
+}

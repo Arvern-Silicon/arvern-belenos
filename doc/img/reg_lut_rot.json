@@ -1,0 +1,6 @@
+{reg: [
+  {bits: 8, name: 'FIRST'},
+  {bits: 8, name: 'LAST'},
+  {bits: 8, name: 'OFFSET'},
+  {bits: 8}
+], config: {bits: 32, lanes: 1, hspace: 900}}

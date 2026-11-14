@@ -1,0 +1,40 @@
+#!/bin/bash
+#----------------------------------------------------------------------------
+#          _    _           Family:    aRVern Graphic Controller
+#         / \__/ \          Module:    run_lint
+#        /   /\   \         --------------------------------------------
+#    ===/   /=========      Copyright: (c) 2026, aRVern-dev
+#      /   / RV \   \       Contact:   arvernsilicon@gmail.com
+#     /___/______\___\      GitHub:    https://github.com/Arvern-Silicon
+#
+# SPDX-License-Identifier: BSD-3-Clause
+# Full license text is available in the LICENSE file at the repository root.
+#----------------------------------------------------------------------------
+# File Name          : run_lint
+# Module Description : Verilator lint of the belenos RTL.
+#                        ./run_lint         RTL parameter defaults
+#                        ./run_lint -sweep  every config of bin/rtl_configs.py
+#                                           (one --lint-only run each with
+#                                           -G<PARAM>=<VAL>, summary table)
+#                        ./run_lint -cdc    structural clock-domain-crossing
+#                                           check of the CDC configurations
+#                                           (lint/cdc/cdc_check.py, Yosys;
+#                                           further arguments passed on)
+#----------------------------------------------------------------------------
+
+if [ "$1" = "-sweep" ]; then
+    exec ../bin/run_lint_sweep.py
+fi
+if [ "$1" = "-cdc" ]; then
+    shift
+    ../../../lint/cdc/cdc_check.py -selftest > /dev/null || { echo "run_lint -cdc: cdc_check.py -selftest failed"; exit 1; }
+    exec ../../../lint/cdc/cdc_check.py "$@"
+fi
+
+# The FuseSoC manifest must list exactly the files of filelist.f (the native
+# flows never read the manifest, so only this check notices when it drifts).
+../bin/check_core_manifest.py || exit 1
+../bin/check_deployed.py || exit 1
+../bin/flatten_filelist.py ../../../rtl/verilog/filelist.f submit_lint.f
+
+verilator --lint-only --top belenos -Wall -Wpedantic waivers.vlt -f submit_lint.f

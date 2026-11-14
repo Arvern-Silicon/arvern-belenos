@@ -1,0 +1,10 @@
+{signal: [
+  {name: 'lcd_cs_n_o', wave: '10..........1'},
+  {name: 'lcd_dc_o',   wave: 'x0..1.......x'},
+  {name: 'lcd_wr_n_o', wave: '1.0101010101.'},
+  {name: 'lcd_d_o',    wave: 'x.3.4.4.4.4.x', data: ['0x2A','SC[15:8]','SC[7:0]','EC[15:8]','EC[7:0]']},
+  {name: 'lcd_rd_n_o', wave: '1............'}
+],
+  head: {text: '8080 PHY, CLK_DIV = 0: a command with four parameters (CASET)'},
+  config: {hscale: 1.5}
+}

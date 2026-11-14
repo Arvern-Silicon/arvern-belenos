@@ -1,0 +1,5 @@
+{reg: [
+  {bits: 1, name: 'START', rotate: -90, attr: 'RW'},
+  {bits: 3},
+  {bits: 28, name: 'PERIOD (cycles; 0 = manual)', attr: 'RW'}
+], config: {bits: 32, lanes: 1, hspace: 900, vspace: 170}}

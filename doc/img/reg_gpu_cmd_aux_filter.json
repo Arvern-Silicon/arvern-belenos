@@ -1,0 +1,8 @@
+{reg: [
+  {bits: 1, name: 'BILINEAR', rotate: -90},
+  {bits: 1, name: 'TBORDER', rotate: -90},
+  {bits: 18},
+  {bits: 4, name: 'SEL = 5'},
+  {bits: 4, name: '13 (AUX)'},
+  {bits: 4, name: '0x6', attr: 'SET_AUX'}
+], config: {bits: 32, lanes: 1, hspace: 900, vspace: 120}}

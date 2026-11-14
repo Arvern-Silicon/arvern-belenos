@@ -1,0 +1,7 @@
+{reg: [
+  {bits: 7},
+  {bits: 1, name: 'TRI', rotate: -90},
+  {bits: 6},
+  {bits: 14, name: 'DELTA (signed)'},
+  {bits: 4, name: '0xE', attr: 'EXEC_TEXRECT'}
+], config: {bits: 32, lanes: 1, hspace: 900, vspace: 100}}

@@ -1,0 +1,18 @@
+{signal: [
+  {name: 'hclk',        wave: 'p........'},
+  {name: 'v_hsel·htrans', wave: '010.10...'},
+  {name: 'v_haddr',     wave: 'x3x.4x...', data: ['0x100 (W)','0x100 (R)']},
+  {name: 'v_hwrite',    wave: 'x1x.0x...'},
+  {name: 'v_hwdata',    wave: 'x.3x.....', data: ['D']},
+  {name: 'v_hreadyout', wave: '1....0.1.'},
+  {name: 'v_hrdata',    wave: 'x......4x', data: ['D']},
+  {},
+  {name: 'vram_cen_o',  wave: '1.01.01..'},
+  {name: 'vram_wen_o',  wave: 'x.3x.5x..', data: ['0000','1111']},
+  {name: 'vram_addr_o', wave: 'x.3x.3x..', data: ['0x40','0x40']},
+  {name: 'vram_din_o',  wave: 'x.3x.....', data: ['D']},
+  {name: 'vram_dout_i', wave: 'x.....4x.', data: ['D']}
+],
+  head: {text: 'VRAM window: writes complete with zero wait states, reads with VRAM_RD_LAT + 1 (the data registered)'},
+  config: {hscale: 2}
+}

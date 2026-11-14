@@ -1,0 +1,203 @@
+{
+  "description": "blns_ahb_reg with blns_lut: the registered HREADYOUT equals the same-cycle ready in every cycle (the same wait states), a LUT write never completes without its macro write",
+  "top": "ahb_reg_fv",
+  "clocking": "single",
+  "files": [
+    "ips:arv_ipdff.v",
+    "rtl:blns_ahb_reg.v",
+    "rtl:blns_lut.v",
+    "ahb_reg_fv.sv"
+  ],
+  "tasks": {
+    "lut2": {
+      "params": {
+        "LUT_BANKS": 2
+      },
+      "depth": 10,
+      "induction": true,
+      "cover": true,
+      "cover_depth": 14,
+      "probes": {
+        "p_err_done": "u_reg.error_resp_done",
+        "p_rb_first": "u_lut.rb_first",
+        "p_rd_pend": "u_lut.rb_rd_pend",
+        "p_dph_valid": "u_reg.dph_valid",
+        "p_dph_go": "u_reg.dph_go"
+      },
+      "note": "two LUT banks, built-in BDI driver"
+    },
+    "lut1": {
+      "params": {
+        "LUT_BANKS": 1
+      },
+      "depth": 10,
+      "induction": true,
+      "cover": true,
+      "cover_depth": 14,
+      "probes": {
+        "p_err_done": "u_reg.error_resp_done",
+        "p_rb_first": "u_lut.rb_first",
+        "p_rd_pend": "u_lut.rb_rd_pend",
+        "p_dph_valid": "u_reg.dph_valid",
+        "p_dph_go": "u_reg.dph_go"
+      },
+      "note": "one LUT bank (bank 1 read-as-zero / write-ignored)"
+    },
+    "bdi_ext": {
+      "params": {
+        "BDI_EXT_EN": 1,
+        "PRIV_CHECK_EN": 1
+      },
+      "depth": 10,
+      "induction": true,
+      "cover": true,
+      "cover_depth": 14,
+      "probes": {
+        "p_err_done": "u_reg.error_resp_done",
+        "p_rb_first": "u_lut.rb_first",
+        "p_rd_pend": "u_lut.rb_rd_pend",
+        "p_dph_valid": "u_reg.dph_valid",
+        "p_dph_go": "u_reg.dph_go"
+      },
+      "note": "external BDI driver (free ready), privilege check"
+    },
+    "free_hready": {
+      "params": {
+        "FREE_HREADY": 1
+      },
+      "depth": 10,
+      "induction": true,
+      "cover": true,
+      "cover_depth": 14,
+      "probes": {
+        "p_err_done": "u_reg.error_resp_done",
+        "p_rb_first": "u_lut.rb_first",
+        "p_rd_pend": "u_lut.rb_rd_pend",
+        "p_dph_valid": "u_reg.dph_valid",
+        "p_dph_go": "u_reg.dph_go"
+      },
+      "note": "HREADY free, not the fabric's (beyond AHB-Lite)"
+    },
+    "srst": {
+      "params": {
+        "ASYNC_RST_EN": 0
+      },
+      "depth": 10,
+      "induction": true,
+      "cover": false,
+      "cover_depth": 14,
+      "probes": {
+        "p_err_done": "u_reg.error_resp_done",
+        "p_rb_first": "u_lut.rb_first",
+        "p_rd_pend": "u_lut.rb_rd_pend",
+        "p_dph_valid": "u_reg.dph_valid",
+        "p_dph_go": "u_reg.dph_go"
+      },
+      "note": "synchronous reset"
+    }
+  },
+  "mutations": [
+    {
+      "name": "rb_first_late",
+      "task": "lut2",
+      "file": "rtl:blns_lut.v",
+      "from": "wire                    rb_first_nxt   =  rb_lost & (rb_wait == (RB_WAIT_MAX - 3'd1));",
+      "to": "wire                    rb_first_nxt   =  rb_lost & (rb_wait == RB_WAIT_MAX);",
+      "expect": [
+        "a_hready"
+      ]
+    },
+    {
+      "name": "bk_lreq_nxt_ignored",
+      "task": "lut2",
+      "file": "rtl:blns_lut.v",
+      "from": "(rb_wr_nxt_i & (~bk_lreq_nxt_i | rb_first_nxt))",
+      "to": "(rb_wr_nxt_i)",
+      "expect": [
+        "a_hready",
+        "a_lut_wr"
+      ]
+    },
+    {
+      "name": "rd_pend_ignored",
+      "task": "lut2",
+      "file": "rtl:blns_lut.v",
+      "from": "                                           rb_rd_pend_nxt;\n",
+      "to": "                                           1'b0;\n",
+      "expect": [
+        "a_hready"
+      ]
+    },
+    {
+      "name": "hole_ignored",
+      "task": "lut1",
+      "file": "rtl:blns_lut.v",
+      "from": "wire                    rb_hole_nxt    =  (LUT_BANKS == 1) & rb_bank_nxt_i;",
+      "to": "wire                    rb_hole_nxt    =  1'b0;",
+      "expect": [
+        "a_hready"
+      ]
+    },
+    {
+      "name": "dph_hold_ignored",
+      "task": "lut2",
+      "file": "rtl:blns_ahb_reg.v",
+      "from": "wire             [11:2] dph_addr_nxt  = dph_en ? (haddr_i[11:2] & {10{aph_valid}}) : dph_addr;",
+      "to": "wire             [11:2] dph_addr_nxt  = haddr_i[11:2] & {10{aph_valid}};",
+      "expect": [
+        "a_hready"
+      ]
+    },
+    {
+      "name": "err_second_cycle_ignored",
+      "task": "lut2",
+      "file": "rtl:blns_ahb_reg.v",
+      "from": "wire                    hready_nxt     =  error_resp_nxt ? error_resp_done_nxt : ~(lut_wait_nxt | rb_hold_nxt);",
+      "to": "wire                    hready_nxt     =  ~(lut_wait_nxt | rb_hold_nxt);",
+      "expect": [
+        "a_hready"
+      ]
+    },
+    {
+      "name": "bdi_ext_ignored",
+      "task": "bdi_ext",
+      "file": "rtl:blns_ahb_reg.v",
+      "from": "assign          hreadyout_o = bdi_ext ? rb_ready_bdi_i : hready_q;",
+      "to": "assign          hreadyout_o = hready_q;",
+      "expect": [
+        "a_hready"
+      ]
+    },
+    {
+      "name": "vw_hold_ignored",
+      "task": "lut2",
+      "file": "rtl:blns_ahb_reg.v",
+      "from": "wire                    rb_go      =  ~vw_pend_i | dph_go;",
+      "to": "wire                    rb_go      =  1'b1;",
+      "expect": [
+        "a_vw_start",
+        "a_hready"
+      ]
+    },
+    {
+      "name": "vw_hold_interrupts",
+      "task": "bdi_ext",
+      "file": "rtl:blns_ahb_reg.v",
+      "from": "wire                    rb_go      =  ~vw_pend_i | dph_go;",
+      "to": "wire                    rb_go      =  ~vw_pend_i;",
+      "expect": [
+        "a_vw_cont"
+      ]
+    },
+    {
+      "name": "vw_ready_ignores_hold",
+      "task": "lut2",
+      "file": "rtl:blns_ahb_reg.v",
+      "from": "wire                    rb_hold_nxt    = rb_pend_nxt & vw_pend_nxt_i & ~dph_go_nxt;",
+      "to": "wire                    rb_hold_nxt    = 1'b0;",
+      "expect": [
+        "a_hready"
+      ]
+    }
+  ]
+}

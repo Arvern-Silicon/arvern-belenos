@@ -1,0 +1,14 @@
+{reg: [
+  {bits: 4, name: 'log2 W'},
+  {bits: 4, name: 'log2 H'},
+  {bits: 1, name: 'TR', rotate: -90},
+  {bits: 1, name: 'D.CL', rotate: -90},
+  {bits: 1, name: 'D.Y', rotate: -90},
+  {bits: 1, name: 'D.X', rotate: -90},
+  {bits: 1, name: 'FP', rotate: -90},
+  {bits: 1, name: 'BOUND', rotate: -90},
+  {bits: 2, name: 'REMAP', rotate: -90},
+  {bits: 8, name: 'SHADE'},
+  {bits: 4, name: '0 (TEX)'},
+  {bits: 4, name: '0x6', attr: 'SET_EXT'}
+], config: {bits: 32, lanes: 1, hspace: 900, vspace: 150}}

@@ -1,0 +1,16 @@
+{reg: [
+  {bits: 4, name: 'PX_OP'},
+  {bits: 1, name: 'D.CL', rotate: -90},
+  {bits: 1, name: 'D.Y', rotate: -90},
+  {bits: 1, name: 'D.X', rotate: -90},
+  {bits: 1, name: 'TRI (FILL)', rotate: -90},
+  {bits: 1, name: 'S.CL', rotate: -90},
+  {bits: 1, name: 'S.Y', rotate: -90},
+  {bits: 1, name: 'S.X', rotate: -90},
+  {bits: 1, name: 'MPLANE (COPY)', rotate: -90},
+  {bits: 2, name: 'REMAP', rotate: -90},
+  {bits: 10},
+  {bits: 1, name: 'LINE (FILL)', rotate: -90},
+  {bits: 3},
+  {bits: 4, name: '0x8/9/A', attr: 'EXEC'}
+], config: {bits: 32, lanes: 1, hspace: 900, vspace: 170}}

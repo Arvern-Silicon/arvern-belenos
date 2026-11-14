@@ -1,0 +1,103 @@
+#----------------------------------------------------------------------------
+# belenos structural CDC check (cdc_check.py): documented crossings
+#
+#   KIND  source-pattern  destination-pattern  | reason (doc reference)
+#
+# Patterns are shell globs on the names cdc_check.py prints (flattened
+# instance paths; RECONV sources are the comma-joined synchroniser outputs).
+# A waiver that no CDC configuration uses is STALE and fails the check.
+# References: blns_dpi_cdc.v header (the list of unsynchronised data),
+# doc/integration_guide.md "Separate pixel clock" and "Timing
+# constraints", rtl/constraints/belenos_dpi.sdc (their max-delay
+# constraints), formal/cdc_dpi (the handshake proofs).
+#----------------------------------------------------------------------------
+
+#=============================================================================
+# CROSSING: unsynchronised data under a handshake or an enable
+#=============================================================================
+# hclk -> pixel: the staged configuration, read by the pixel domain only when
+# it takes the staged set (start, or a frame start with UPDATE pending);
+# staging writes are ignored while it may (st_lock). Proved: formal/cdc_dpi
+CROSSING  *.u_dpi_regs.*u_st_*       *.u_dpi_scan.*        | staged configuration, locked while the pixel domain may take it (blns_dpi_cdc.v header; integration "Separate pixel clock"; belenos_dpi.sdc u_st_*; formal/cdc_dpi)
+# The frame size: written with its request toggle, read when the toggle is
+# seen and only then (sz_send waits for the acknowledge)
+CROSSING  *.u_dpi_bdi.u_sz           *.u_dpi_scan.u_size   | frame-size snapshot announced by a toggle, sent only with the acknowledge back (blns_dpi_cdc.v header; belenos_dpi.sdc u_sz; formal/cdc_dpi)
+# Bank tags: written while the bank is empty, read while it is full
+CROSSING  *.u_dpi_bdi.g_bank*.u_tag  *.u_dpi_scan.*        | line-buffer bank tag, stable while the bank is full (integration "Separate pixel clock"; belenos_dpi.sdc u_tag; formal/cdc_dpi)
+# HDMI: AVI fields copied at a start or a frame start that takes an UPDATE
+# (locked then, hardware) or when AVI rises (written with it clear: software
+# rule SW3)
+CROSSING  *.u_dpi_regs.g_hdmi_regs.u_hdmi_fld  *.g_hdmi_copy.u_avi_f  | DPI_HDMI fields, copied at a start or an UPDATE (writes ignored then) or when AVI rises (integration "Separate pixel clock"; belenos_dpi.sdc u_hdmi_fld; formal/cdc_dpi hdmi)
+# Generic packet: read while GP is set, and by a generic packet still sent
+# when it clears (the packet bits go to the parities u_hdr / u_sub and the
+# symbols u_ovr1); writes ignored while GP is set in the register (hardware
+# lock), the pixel clocks after it clears are a software rule (wait for the
+# next frame)
+CROSSING  *.u_dpi_regs.g_aud_regs.u_pkt0       *.g_hdmi.u_hdmi.u_hdr     | DPI_PKT0, read while GP is set, writes ignored then (integration "Separate pixel clock"; belenos_dpi.sdc u_pkt0)
+CROSSING  *.u_dpi_regs.g_aud_regs.u_pkt0       *.g_hdmi.u_hdmi.u_ovr1    | DPI_PKT0, read while GP is set, writes ignored then (integration "Separate pixel clock"; belenos_dpi.sdc u_pkt0)
+CROSSING  *.u_dpi_regs.g_aud_regs.g_pkt*.u_pkt *.g_hdmi.u_hdmi.g_sub*.u_sub | DPI_PKT1-7, read while GP is set, writes ignored then (integration "Separate pixel clock"; belenos_dpi.sdc u_pkt)
+CROSSING  *.u_dpi_regs.g_aud_regs.g_pkt*.u_pkt *.g_hdmi.u_hdmi.u_ovr1    | DPI_PKT1-7, read while GP is set, writes ignored then (integration "Separate pixel clock"; belenos_dpi.sdc u_pkt)
+# DPI_AUD: read while AUD is set in the pixel domain (and a clock after);
+# writes ignored while AUD is set or its pixel-domain copy has not come back
+# clear (hardware lock, AUD crossing as a handshake: u_aud_x)
+CROSSING  *.u_dpi_regs.g_aud_regs.u_aud_cfg    *.g_hdmi.u_hdmi.u_fld     | DPI_AUD (N, channel status), latched at a packet's load while AUD is set there, writes ignored then (programming guide "HDMI audio"; belenos_dpi.sdc u_aud_cfg; formal/cdc_dpi a_aud_stable)
+CROSSING  *.u_dpi_regs.g_aud_regs.u_aud_cfg    *.g_hdmi.u_hdmi.g_i2s.u_i2s.u_* | DPI_AUD N / 128 into the CTS meter, read while AUD is set there, writes ignored then (programming guide "HDMI audio"; belenos_dpi.sdc u_aud_cfg; formal/cdc_dpi a_aud_stable)
+# pixel -> hclk: snapshots taken on a synchronised toggle
+CROSSING  *.u_dpi_scan.u_line          *.u_dpi_cdc.u_line         | LINE / VBLANK, taken when the line toggle moves, stable for a line (blns_dpi_cdc.v header; belenos_dpi.sdc u_line)
+CROSSING  *.g_hdmi.u_hdmi.g_i2s.u_i2s.u_cts    *.u_dpi_cdc.g_aud.u_cts_h  | the measured CTS, taken on its toggle, stable for a measurement (blns_dpi_cdc.v header; belenos_dpi.sdc u_cts_h)
+
+#=============================================================================
+# MULTIBIT: registers whose bits cross through separate synchroniser bits
+#=============================================================================
+MULTIBIT  *.u_dpi_bdi.u_fill               *.u_dpi_cdc.g_sep.u_h2p       | one fill toggle per bank, each bank handed over on its own (integration "Separate pixel clock")
+MULTIBIT  *.u_dpi_scan.u_rel       *.u_dpi_cdc.g_sep.u_p2h       | one release toggle per bank, each bank handed back on its own (integration "Separate pixel clock")
+MULTIBIT  *.u_dpi_regs.g_hdmi_regs.u_hdmi_ctl  *.u_hdmi_sync           | HDMI and AVI: two independent enables written in one register, each taken by the pixel domain at a frame boundary (integration "Separate pixel clock": DPI_HDMI [1:0])
+MULTIBIT  lcd_d_i                          *blns_dbi_8080_inst.g_d_sync*  | 8080 read data: sampled at the end of a read strobe of at least CLK_DIV + 1 >= 2 clocks, the panel holding it stable (programming guide: CLK_DIV >= 1 for reads)
+
+#=============================================================================
+# RECONV: separately synchronised bits combined in one cone
+#=============================================================================
+# Pixel side: per-bank fill toggles (a late bit makes that bank full a clock
+# later), the run enable, the UPDATE request and the frame-size request; the
+# enable / request skew at a start is harmless (the start takes the staged
+# set whatever the request, and acknowledges with it). formal/cdc_dpi models
+# every bit with its own delay.
+RECONV    *u_h2p*                          *.u_dpi_scan.u_*      | independent toggles and the run enable into the pixel side (integration "Separate pixel clock"; formal/cdc_dpi, per-bit synchroniser delay)
+RECONV    *u_h2p*                          *.u_dpi_scan.g_pre.u_isl | the run enable and the UPDATE request into the island count taken with the configuration (apply), as u_cur and u_tim (formal/cdc_dpi)
+# hclk side: per-bank release toggles into the lowest-empty-bank pick and the
+# pixel-ready path; frame start, line, scanline and underflow toggles each
+# compared with their own copy; running and acknowledges in the staging lock
+# (a lock term covers either order); running and the size acknowledge
+RECONV    *u_p2h*                          *.u_dpi_bdi.u_*               | per-bank release toggles and the frame epoch into the bank pick; running and the size acknowledge into the resend (sent again while the pixel side starts, in either order) (integration "Separate pixel clock"; formal/cdc_dpi)
+RECONV    *u_p2h*                          *.u_dpi_bdi.g_bank*.u_tag     | per-bank release toggles: a tag is written into a bank seen empty (integration "Separate pixel clock"; formal/cdc_dpi)
+RECONV    *u_p2h*                          dpi_lb_we_o                   | per-bank release toggles: the line-buffer write goes to a bank seen empty (integration "Separate pixel clock")
+RECONV    *u_p2h*                          *u_core.u_backend.*           | per-bank release toggles through px_ready (a free bank) into the backend stream (BDI contract: px_ready may drop at any cycle)
+RECONV    *u_p2h*                          *u_core.u_ahb_reg.u_hready    | per-bank release toggles through px_ready into the backend's next LUT request, the register port's registered HREADYOUT one cycle ahead (BDI contract: px_ready may drop at any cycle)
+RECONV    *u_p2h*                          *u_core.u_regs.u_refresh.u_*  | per-bank release toggles through px_ready into the refresh bookkeeping (BDI contract)
+RECONV    *u_p2h*                          *.u_dpi_regs.u_evt_q          | event toggles, each compared with its own delayed copy (edge detectors side by side in one register)
+RECONV    *u_p2h*                          *.u_dpi_regs.u_irq_flag       | independent event flags (VBLANK, LINE, UNDERFLOW, DETECT) set side by side
+RECONV    *u_p2h*                          *.u_dpi_regs.u_frames         | frame-start toggle counted while running; a skew moves a count by one frame start (FRAMES counts frame starts seen)
+RECONV    *u_p2h*                          *.u_dpi_regs.*u_st_*          | running and the configuration acknowledge in the staging lock: st_lock holds in either arrival order (blns_dpi_regs.v section 4; formal/cdc_dpi)
+RECONV    *u_p2h*                          *.u_dpi_regs.u_req            | running and the configuration acknowledge in the UPDATE write (upd_wr: not while st_lock): either arrival order keeps it locked, the write then ignored while UPDATE reads 1 (blns_dpi_regs.v section 4; formal/cdc_dpi a_upd_handshake)
+RECONV    *u_p2h*                          *.u_dpi_regs.g_hdmi_regs.u_hdmi_fld | running and the configuration acknowledge in the AVI field lock (fld_lock): it holds in either arrival order (blns_dpi_regs.v DPI_HDMI; formal/cdc_dpi hdmi)
+RECONV    *u_p2h*                          hclk_en_o                     | the clock request: an OR of running and the pending event toggles, each bit consumed by its own flop; any one keeps the clock, a skew only moves the request's end by a cycle (blns_dpi_regs.v busy_o; integration "Clock gating")
+RECONV    *u_p2h*                          r_hrdata_o                    | register read mux of independent status bits (STATUS running/UPDATE, DDC levels, DPI_AUD_STAT); LOST is shown only with ACTIVE on purpose (blns_dpi_cdc.v)
+# HDMI
+RECONV    *u_hdmi_sync*                    *.g_hdmi.u_hdmi.u_pend        | independent packet enables (HDMI, AVI, AUD, GP), each taken at a frame boundary
+RECONV    *u_hdmi_sync*                    *.g_hdmi_copy.u_avi_f         | AVI rise and the UPDATE take of the AVI fields: either takes the stable fields (blns_dpi.v section 6)
+# I2S: BCLK, LRCK and SD through one synchroniser; SD and LRCK change on the
+# BCLK falling edge and BCLK stays high and low for at least 2 pixel clocks,
+# so they are stable when the BCLK rising edge is detected
+RECONV    *u_i2s.u_sync*                   *.g_hdmi.u_hdmi.g_i2s.u_i2s.u_* | I2S: SD and LRCK used at the detected BCLK rise, stable then (blns_hdmi_i2s.v header: BCLK high and low >= 2 pixel clocks; integration "Timing constraints")
+# DBI 8080 read data bits recombined into the read word
+RECONV    *blns_dbi_8080_inst.g_d_sync*    *.blns_dbi_engine_inst.u_gts_*  | 8080 read data taken at the end of the strobe, held stable by the panel (programming guide: CLK_DIV >= 1 for reads)
+
+#=============================================================================
+# RESET: a flop cleared by the other domain's reset
+#=============================================================================
+# The pixel-reset detector: a reset synchroniser of dpi_presetn_i on hclk_i
+# (arv_synchronizer with async_i = 1, and a third stage), cleared by it so that
+# a pixel-only reset of any width is seen; its release is resolved by the first
+# stage, the other two hold 0 then (blns_dpi_cdc.v; integration "Separate pixel
+# clock" and "Timing constraints": a false path to their clear pins)
+RESET     dpi_presetn_i                    *.u_dpi_cdc.g_sep.u_prst_*    | pixel-only reset detector on hclk_i, cleared asynchronously by dpi_presetn_i (blns_dpi_cdc.v; integration "Separate pixel clock"; formal/cdc_dpi dpi_prst)

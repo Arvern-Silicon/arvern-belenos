@@ -1,0 +1,9 @@
+{signal: [
+  {name: 'hclk',               wave: 'p.........'},
+  {name: 'REFRESH data phase', wave: '010.......', node: '.a........'},
+  {name: 'bdi_refresh_trig_o', wave: '0..1010101', node: '...b.c....'}
+],
+  edge: ['a~>b PERIOD', 'b~>c PERIOD'],
+  head: {text: 'Refresh timer: REFRESH = (PERIOD << 4) | START, here PERIOD = 2'},
+  config: {hscale: 2}
+}

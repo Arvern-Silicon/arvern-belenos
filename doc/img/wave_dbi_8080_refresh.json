@@ -1,0 +1,10 @@
+{signal: [
+  {name: 'lcd_cs_n_o',     wave: '10........1'},
+  {name: 'lcd_dc_o',       wave: 'x010101...x'},
+  {name: 'lcd_d_o',        wave: 'x343435555x', data: ['0x2A','4 params','0x2B','4 params','0x2C','pixel 0','pixel 1','…','pixel N']},
+  {},
+  {name: 'refresh_active', wave: '0...1.....0'}
+],
+  head: {text: '8080 PHY: windowed refresh (HW_WINDOW_EN = 1) in one CS frame, one slot per item; refresh_active rises with the last PASET parameter'},
+  config: {hscale: 1.6}
+}

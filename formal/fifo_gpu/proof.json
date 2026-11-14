@@ -1,0 +1,423 @@
+{
+  "description": "blns_gpu_fifo: count, FULL/EMPTY, no overflow/underflow, head 0 when empty, order and tags (tracked word)",
+  "top": "fifo_gpu_fv",
+  "clocking": "single",
+  "files": [
+    "ips:arv_ipdff.v",
+    "rtl:blns_gpu_fifo.v",
+    "fifo_gpu_fv.sv"
+  ],
+  "tasks": {
+    "aw3_tag2": {
+      "params": {
+        "AW": 3,
+        "TAG_W": 2
+      },
+      "depth": 8,
+      "induction": true,
+      "cover": true,
+      "cover_depth": 14,
+      "probes": {
+        "p_wr_ptr": "u_dut.u_wr_ptr.q_o",
+        "p_rd_ptr": "u_dut.u_rd_ptr.q_o",
+        "p_mem[31:0]": "\\u_dut.mem[0]",
+        "p_tag[1:0]": "\\u_dut.tag_mem[0]",
+        "p_mem[63:32]": "\\u_dut.mem[1]",
+        "p_tag[3:2]": "\\u_dut.tag_mem[1]",
+        "p_mem[95:64]": "\\u_dut.mem[2]",
+        "p_tag[5:4]": "\\u_dut.tag_mem[2]",
+        "p_mem[127:96]": "\\u_dut.mem[3]",
+        "p_tag[7:6]": "\\u_dut.tag_mem[3]",
+        "p_mem[159:128]": "\\u_dut.mem[4]",
+        "p_tag[9:8]": "\\u_dut.tag_mem[4]",
+        "p_mem[191:160]": "\\u_dut.mem[5]",
+        "p_tag[11:10]": "\\u_dut.tag_mem[5]",
+        "p_mem[223:192]": "\\u_dut.mem[6]",
+        "p_tag[13:12]": "\\u_dut.tag_mem[6]",
+        "p_mem[255:224]": "\\u_dut.mem[7]",
+        "p_tag[15:14]": "\\u_dut.tag_mem[7]"
+      },
+      "note": "8 words, 2 tag bits: marker, immediate data (default GPU_FIFO_AW: classic)",
+      "probes_mem": [
+        "p_mem[31:0]",
+        "p_tag[1:0]",
+        "p_mem[63:32]",
+        "p_tag[3:2]",
+        "p_mem[95:64]",
+        "p_tag[5:4]",
+        "p_mem[127:96]",
+        "p_tag[7:6]",
+        "p_mem[159:128]",
+        "p_tag[9:8]",
+        "p_mem[191:160]",
+        "p_tag[11:10]",
+        "p_mem[223:192]",
+        "p_tag[13:12]",
+        "p_mem[255:224]",
+        "p_tag[15:14]"
+      ]
+    },
+    "aw3_tag1": {
+      "params": {
+        "AW": 3,
+        "TAG_W": 1
+      },
+      "depth": 8,
+      "induction": true,
+      "cover": true,
+      "cover_depth": 14,
+      "probes": {
+        "p_wr_ptr": "u_dut.u_wr_ptr.q_o",
+        "p_rd_ptr": "u_dut.u_rd_ptr.q_o",
+        "p_mem[31:0]": "\\u_dut.mem[0]",
+        "p_tag[0]": "\\u_dut.tag_mem[0]",
+        "p_mem[63:32]": "\\u_dut.mem[1]",
+        "p_tag[1]": "\\u_dut.tag_mem[1]",
+        "p_mem[95:64]": "\\u_dut.mem[2]",
+        "p_tag[2]": "\\u_dut.tag_mem[2]",
+        "p_mem[127:96]": "\\u_dut.mem[3]",
+        "p_tag[3]": "\\u_dut.tag_mem[3]",
+        "p_mem[159:128]": "\\u_dut.mem[4]",
+        "p_tag[4]": "\\u_dut.tag_mem[4]",
+        "p_mem[191:160]": "\\u_dut.mem[5]",
+        "p_tag[5]": "\\u_dut.tag_mem[5]",
+        "p_mem[223:192]": "\\u_dut.mem[6]",
+        "p_tag[6]": "\\u_dut.tag_mem[6]",
+        "p_mem[255:224]": "\\u_dut.mem[7]",
+        "p_tag[7]": "\\u_dut.tag_mem[7]"
+      },
+      "note": "8 words, the marker tag only (GPU_IMM_EN = 0: essential)",
+      "probes_mem": [
+        "p_mem[31:0]",
+        "p_tag[0]",
+        "p_mem[63:32]",
+        "p_tag[1]",
+        "p_mem[95:64]",
+        "p_tag[2]",
+        "p_mem[127:96]",
+        "p_tag[3]",
+        "p_mem[159:128]",
+        "p_tag[4]",
+        "p_mem[191:160]",
+        "p_tag[5]",
+        "p_mem[223:192]",
+        "p_tag[6]",
+        "p_mem[255:224]",
+        "p_tag[7]"
+      ]
+    },
+    "aw4_tag2": {
+      "params": {
+        "AW": 4,
+        "TAG_W": 2
+      },
+      "depth": 8,
+      "induction": true,
+      "cover": true,
+      "cover_depth": 22,
+      "probes": {
+        "p_wr_ptr": "u_dut.u_wr_ptr.q_o",
+        "p_rd_ptr": "u_dut.u_rd_ptr.q_o",
+        "p_mem[31:0]": "\\u_dut.mem[0]",
+        "p_tag[1:0]": "\\u_dut.tag_mem[0]",
+        "p_mem[63:32]": "\\u_dut.mem[1]",
+        "p_tag[3:2]": "\\u_dut.tag_mem[1]",
+        "p_mem[95:64]": "\\u_dut.mem[2]",
+        "p_tag[5:4]": "\\u_dut.tag_mem[2]",
+        "p_mem[127:96]": "\\u_dut.mem[3]",
+        "p_tag[7:6]": "\\u_dut.tag_mem[3]",
+        "p_mem[159:128]": "\\u_dut.mem[4]",
+        "p_tag[9:8]": "\\u_dut.tag_mem[4]",
+        "p_mem[191:160]": "\\u_dut.mem[5]",
+        "p_tag[11:10]": "\\u_dut.tag_mem[5]",
+        "p_mem[223:192]": "\\u_dut.mem[6]",
+        "p_tag[13:12]": "\\u_dut.tag_mem[6]",
+        "p_mem[255:224]": "\\u_dut.mem[7]",
+        "p_tag[15:14]": "\\u_dut.tag_mem[7]",
+        "p_mem[287:256]": "\\u_dut.mem[8]",
+        "p_tag[17:16]": "\\u_dut.tag_mem[8]",
+        "p_mem[319:288]": "\\u_dut.mem[9]",
+        "p_tag[19:18]": "\\u_dut.tag_mem[9]",
+        "p_mem[351:320]": "\\u_dut.mem[10]",
+        "p_tag[21:20]": "\\u_dut.tag_mem[10]",
+        "p_mem[383:352]": "\\u_dut.mem[11]",
+        "p_tag[23:22]": "\\u_dut.tag_mem[11]",
+        "p_mem[415:384]": "\\u_dut.mem[12]",
+        "p_tag[25:24]": "\\u_dut.tag_mem[12]",
+        "p_mem[447:416]": "\\u_dut.mem[13]",
+        "p_tag[27:26]": "\\u_dut.tag_mem[13]",
+        "p_mem[479:448]": "\\u_dut.mem[14]",
+        "p_tag[29:28]": "\\u_dut.tag_mem[14]",
+        "p_mem[511:480]": "\\u_dut.mem[15]",
+        "p_tag[31:30]": "\\u_dut.tag_mem[15]"
+      },
+      "note": "16 words (performance)",
+      "probes_mem": [
+        "p_mem[31:0]",
+        "p_tag[1:0]",
+        "p_mem[63:32]",
+        "p_tag[3:2]",
+        "p_mem[95:64]",
+        "p_tag[5:4]",
+        "p_mem[127:96]",
+        "p_tag[7:6]",
+        "p_mem[159:128]",
+        "p_tag[9:8]",
+        "p_mem[191:160]",
+        "p_tag[11:10]",
+        "p_mem[223:192]",
+        "p_tag[13:12]",
+        "p_mem[255:224]",
+        "p_tag[15:14]",
+        "p_mem[287:256]",
+        "p_tag[17:16]",
+        "p_mem[319:288]",
+        "p_tag[19:18]",
+        "p_mem[351:320]",
+        "p_tag[21:20]",
+        "p_mem[383:352]",
+        "p_tag[23:22]",
+        "p_mem[415:384]",
+        "p_tag[25:24]",
+        "p_mem[447:416]",
+        "p_tag[27:26]",
+        "p_mem[479:448]",
+        "p_tag[29:28]",
+        "p_mem[511:480]",
+        "p_tag[31:30]"
+      ]
+    },
+    "aw4_srst": {
+      "params": {
+        "AW": 4,
+        "TAG_W": 2,
+        "ASYNC_RST_EN": 0
+      },
+      "depth": 8,
+      "induction": true,
+      "cover": false,
+      "probes": {
+        "p_wr_ptr": "u_dut.u_wr_ptr.q_o",
+        "p_rd_ptr": "u_dut.u_rd_ptr.q_o",
+        "p_mem[31:0]": "\\u_dut.mem[0]",
+        "p_tag[1:0]": "\\u_dut.tag_mem[0]",
+        "p_mem[63:32]": "\\u_dut.mem[1]",
+        "p_tag[3:2]": "\\u_dut.tag_mem[1]",
+        "p_mem[95:64]": "\\u_dut.mem[2]",
+        "p_tag[5:4]": "\\u_dut.tag_mem[2]",
+        "p_mem[127:96]": "\\u_dut.mem[3]",
+        "p_tag[7:6]": "\\u_dut.tag_mem[3]",
+        "p_mem[159:128]": "\\u_dut.mem[4]",
+        "p_tag[9:8]": "\\u_dut.tag_mem[4]",
+        "p_mem[191:160]": "\\u_dut.mem[5]",
+        "p_tag[11:10]": "\\u_dut.tag_mem[5]",
+        "p_mem[223:192]": "\\u_dut.mem[6]",
+        "p_tag[13:12]": "\\u_dut.tag_mem[6]",
+        "p_mem[255:224]": "\\u_dut.mem[7]",
+        "p_tag[15:14]": "\\u_dut.tag_mem[7]",
+        "p_mem[287:256]": "\\u_dut.mem[8]",
+        "p_tag[17:16]": "\\u_dut.tag_mem[8]",
+        "p_mem[319:288]": "\\u_dut.mem[9]",
+        "p_tag[19:18]": "\\u_dut.tag_mem[9]",
+        "p_mem[351:320]": "\\u_dut.mem[10]",
+        "p_tag[21:20]": "\\u_dut.tag_mem[10]",
+        "p_mem[383:352]": "\\u_dut.mem[11]",
+        "p_tag[23:22]": "\\u_dut.tag_mem[11]",
+        "p_mem[415:384]": "\\u_dut.mem[12]",
+        "p_tag[25:24]": "\\u_dut.tag_mem[12]",
+        "p_mem[447:416]": "\\u_dut.mem[13]",
+        "p_tag[27:26]": "\\u_dut.tag_mem[13]",
+        "p_mem[479:448]": "\\u_dut.mem[14]",
+        "p_tag[29:28]": "\\u_dut.tag_mem[14]",
+        "p_mem[511:480]": "\\u_dut.mem[15]",
+        "p_tag[31:30]": "\\u_dut.tag_mem[15]"
+      },
+      "note": "synchronous reset",
+      "probes_mem": [
+        "p_mem[31:0]",
+        "p_tag[1:0]",
+        "p_mem[63:32]",
+        "p_tag[3:2]",
+        "p_mem[95:64]",
+        "p_tag[5:4]",
+        "p_mem[127:96]",
+        "p_tag[7:6]",
+        "p_mem[159:128]",
+        "p_tag[9:8]",
+        "p_mem[191:160]",
+        "p_tag[11:10]",
+        "p_mem[223:192]",
+        "p_tag[13:12]",
+        "p_mem[255:224]",
+        "p_tag[15:14]",
+        "p_mem[287:256]",
+        "p_tag[17:16]",
+        "p_mem[319:288]",
+        "p_tag[19:18]",
+        "p_mem[351:320]",
+        "p_tag[21:20]",
+        "p_mem[383:352]",
+        "p_tag[23:22]",
+        "p_mem[415:384]",
+        "p_tag[25:24]",
+        "p_mem[447:416]",
+        "p_tag[27:26]",
+        "p_mem[479:448]",
+        "p_tag[29:28]",
+        "p_mem[511:480]",
+        "p_tag[31:30]"
+      ]
+    }
+  },
+  "mutations": [
+    {
+      "name": "push_when_full",
+      "task": "aw3_tag2",
+      "file": "rtl:blns_gpu_fifo.v",
+      "from": "wire            push_ok  = push_i & ~full;",
+      "to": "wire            push_ok  = push_i;",
+      "expect": [
+        "a_count",
+        "a_no_ovfl",
+        "a_full",
+        "a_order"
+      ],
+      "depth": 12
+    },
+    {
+      "name": "pop_when_empty",
+      "task": "aw3_tag2",
+      "file": "rtl:blns_gpu_fifo.v",
+      "from": "wire            pop_ok   = pop_i  & ~empty;",
+      "to": "wire            pop_ok   = pop_i;",
+      "expect": [
+        "a_count",
+        "a_empty"
+      ],
+      "depth": 12
+    },
+    {
+      "name": "full_early",
+      "task": "aw3_tag2",
+      "file": "rtl:blns_gpu_fifo.v",
+      "from": "wire            full_nxt   = ~flush_i & push_ok & (count == DEPTH_M1);",
+      "to": "wire            full_nxt   = ~flush_i & push_ok & (count == DEPTH_M1 - 1'b1);",
+      "expect": [
+        "a_full",
+        "a_count"
+      ],
+      "depth": 12
+    },
+    {
+      "name": "empty_wrong",
+      "task": "aw3_tag2",
+      "file": "rtl:blns_gpu_fifo.v",
+      "from": "wire            empty_nxt  =  flush_i | (~push_ok & (count == {{AW{1'b0}}, 1'b1}));",
+      "to": "wire            empty_nxt  =  flush_i | (~push_ok & (count <= {{(AW-1){1'b0}}, 2'b10}));",
+      "expect": [
+        "a_empty",
+        "a_head_0"
+      ],
+      "depth": 12
+    },
+    {
+      "name": "flush_keeps_count",
+      "task": "aw3_tag2",
+      "file": "rtl:blns_gpu_fifo.v",
+      "from": "wire            count_en   = flush_i | (push_ok ^ pop_ok);",
+      "to": "wire            count_en   = push_ok ^ pop_ok;",
+      "expect": [
+        "a_count"
+      ],
+      "depth": 12
+    },
+    {
+      "name": "flush_keeps_rd_ptr",
+      "task": "aw3_tag2",
+      "file": "rtl:blns_gpu_fifo.v",
+      "from": "wire            rd_ptr_en  = flush_i | pop_ok;",
+      "to": "wire            rd_ptr_en  = pop_ok;",
+      "expect": [
+        "a_order"
+      ],
+      "depth": 12
+    },
+    {
+      "name": "write_on_flush",
+      "task": "aw3_tag2",
+      "file": "rtl:blns_gpu_fifo.v",
+      "from": "wire        mem_wr = push_ok & ~flush_i;",
+      "to": "wire        mem_wr = push_i;",
+      "expect": [
+        "a_order"
+      ],
+      "depth": 12
+    },
+    {
+      "name": "head_not_cleared",
+      "task": "aw3_tag2",
+      "file": "rtl:blns_gpu_fifo.v",
+      "from": "assign head_o  = {32{~empty}} & mem[rd_ptr];",
+      "to": "assign head_o  = mem[rd_ptr];",
+      "expect": [
+        "a_head_0"
+      ],
+      "depth": 12
+    },
+    {
+      "name": "tag_not_cleared",
+      "task": "aw3_tag2",
+      "file": "rtl:blns_gpu_fifo.v",
+      "from": "assign head_tag_o = {TAG_W{~empty}} & tag_mem[rd_ptr];",
+      "to": "assign head_tag_o = tag_mem[rd_ptr];",
+      "expect": [
+        "a_head_0"
+      ],
+      "depth": 12
+    },
+    {
+      "name": "tag_wrong_slot",
+      "task": "aw3_tag2",
+      "file": "rtl:blns_gpu_fifo.v",
+      "from": "if (mem_wr) tag_mem[wr_ptr] <= wtag_i;",
+      "to": "if (mem_wr) tag_mem[rd_ptr] <= wtag_i;",
+      "expect": [
+        "a_order_tag"
+      ],
+      "depth": 12
+    },
+    {
+      "name": "tag_bit_lost",
+      "task": "aw3_tag2",
+      "file": "rtl:blns_gpu_fifo.v",
+      "from": "if (mem_wr) tag_mem[wr_ptr] <= wtag_i;",
+      "to": "if (mem_wr) tag_mem[wr_ptr] <= {1'b0, wtag_i[0]};",
+      "expect": [
+        "a_order_tag"
+      ],
+      "depth": 12
+    },
+    {
+      "name": "marker_tag_inverted",
+      "task": "aw3_tag1",
+      "file": "rtl:blns_gpu_fifo.v",
+      "from": "if (mem_wr) tag_mem[wr_ptr] <= wtag_i;",
+      "to": "if (mem_wr) tag_mem[wr_ptr] <= ~wtag_i;",
+      "expect": [
+        "a_order_tag"
+      ],
+      "depth": 12
+    },
+    {
+      "name": "rd_ptr_skips",
+      "task": "aw4_tag2",
+      "file": "rtl:blns_gpu_fifo.v",
+      "from": "wire   [AW-1:0] rd_ptr_nxt = flush_i ? {AW{1'b0}} : (rd_ptr + {{(AW-1){1'b0}}, 1'b1});",
+      "to": "wire   [AW-1:0] rd_ptr_nxt = flush_i ? {AW{1'b0}} : (rd_ptr + {{(AW-1){1'b0}}, 1'b1} + {{(AW-1){1'b0}}, (rd_ptr == {AW{1'b1}})});",
+      "expect": [
+        "a_order"
+      ],
+      "depth": 20
+    }
+  ]
+}
